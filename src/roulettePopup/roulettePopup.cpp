@@ -40,6 +40,8 @@ namespace geode::prelude {
 	int g_requirePercent = 1;
 	int g_currentPercent = 0;
 
+	bool g_afterSpin = true;
+
 	RoulettePopup* g_popup = nullptr;
 }
 
@@ -91,7 +93,11 @@ bool RoulettePopup::setup() {
 
 	auto spinSpr = ButtonSprite::create("Start");
 	m_spinBtn = CCMenuItemExt::createSpriteExtra(spinSpr, [this](auto) {
-		RouletteLayer::create()->show();
+		if (!g_currentLvl.id.empty()) {
+			g_afterSpin = false;
+			afterSpinOnPopup();
+		}
+		else RouletteLayer::create()->show();
 	});
 	m_spinBtn->setPosition({ 160.0f, 110.0f });
 	m_spinBtn->setScale(0.8f);
@@ -395,6 +401,7 @@ void RouletteLayer::spin() {
 	auto ease = SmoothExponentialOut::create(rotate);
 	auto callback1 = CCCallFunc::create(this, callfunc_selector(RouletteLayer::afterSpinOnLayer));
 	auto callback2 = CCCallFunc::create(g_popup, callfunc_selector(RoulettePopup::afterSpinOnPopup));
+	g_afterSpin = true;
 	auto seq = CCSequence::create(ease, callback1, callback2, nullptr);
 	m_rouletteWheel->runAction(seq);
 }
@@ -412,7 +419,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_spinBtn->setVisible(false);
 		g_skipsCount = Mod::get()->getSettingValue<int>("skips-count");
 
-		g_spinsCount += 1;
+		if (g_afterSpin) g_spinsCount += 1;
 		m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
 
 		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames[g_currentLvl.diff].c_str());
@@ -501,7 +508,7 @@ void RoulettePopup::afterSpinOnPopup() {
 	}
 	else {
 		m_spinBtn->setVisible(false);
-		g_spinsCount += 1;
+		if (g_afterSpin) g_spinsCount += 1;
 		g_currentPercent = 0;
 		m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
 
@@ -646,7 +653,7 @@ class $modify(PlayLayer) {
 	void destroyPlayer(PlayerObject* player, GameObject* object) {
 		PlayLayer::destroyPlayer(player, object);
 
-		if (PlayLayer::getCurrentPercentInt() > g_currentPercent)
+		if (std::to_string(m_level->m_levelID) == g_currentLvl.id && PlayLayer::getCurrentPercentInt() > g_currentPercent)
 			g_currentPercent = PlayLayer::getCurrentPercentInt();
 	}
 };
