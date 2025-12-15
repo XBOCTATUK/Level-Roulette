@@ -22,17 +22,31 @@ namespace geode::prelude {
 		{"ExtremeDemon", {176, 0, 0}}
 	};
 	std::unordered_map<std::string, std::string> g_spriteNames = {
+		{"Auto", "diffIcon_auto_btn_001.png"},
+		{"Easy", "diffIcon_01_btn_001.png"},
+		{"Normal", "diffIcon_02_btn_001.png"},
+		{"Hard", "diffIcon_03_btn_001.png"},
+		{"Harder", "diffIcon_04_btn_001.png"},
+		{"Insane", "diffIcon_05_btn_001.png"},
+		{"EasyDemon", "diffIcon_07_btn_001.png"},
+		{"MediumDemon", "diffIcon_08_btn_001.png"},
+		{"HardDemon", "diffIcon_06_btn_001.png"},
+		{"InsaneDemon", "diffIcon_09_btn_001.png"},
+		{"ExtremeDemon", "diffIcon_10_btn_001.png"}
+	};
+
+	std::unordered_map<std::string, std::string> g_spriteNames1 = {
 		{"Auto", "difficulty_auto_btn_001.png"},
 		{"Easy", "difficulty_01_btn_001.png"},
 		{"Normal", "difficulty_02_btn_001.png"},
 		{"Hard", "difficulty_03_btn_001.png"},
 		{"Harder", "difficulty_04_btn_001.png"},
 		{"Insane", "difficulty_05_btn_001.png"},
-		{"EasyDemon", "difficulty_07_btn2_001.png"},
-		{"MediumDemon", "difficulty_08_btn2_001.png"},
-		{"HardDemon", "difficulty_06_btn2_001.png"},
-		{"InsaneDemon", "difficulty_09_btn2_001.png"},
-		{"ExtremeDemon", "difficulty_10_btn2_001.png"}
+		{"EasyDemon", "difficulty_07_btn_001.png"},
+		{"MediumDemon", "difficulty_08_btn_001.png"},
+		{"HardDemon", "difficulty_06_btn_001.png"},
+		{"InsaneDemon", "difficulty_09_btn_001.png"},
+		{"ExtremeDemon", "difficulty_10_btn_001.png"}
 	};
 
 	int g_spinsCount = 0;
@@ -252,6 +266,7 @@ bool RouletteLayer::setup() {
 	m_mainLayer->addChild(m_rouletteWheel);
 	m_mainLayer->addChild(arrow);
 
+	setKeypadEnabled(false);
 	readLevelData();
 	spin();
 
@@ -324,9 +339,8 @@ void RouletteLayer::spin() {
 				m_levelDislikes1->setString(std::to_string(level.likes).c_str());
 
 				m_diffSpr1 = CCSprite::createWithSpriteFrameName(g_spriteNames[level.diff].c_str());
-				m_diffSpr1->setScale(0.8f);
 				m_diffSpr1->setRotation(315.0f);
-				m_diffSpr1->setPosition({ 25.0f, -25.0f });
+				m_diffSpr1->setPosition({ 30.0f, -30.0f });
 				m_rouletteWheel->addChild(m_diffSpr1);
 
 				auto posX = m_levelDislikes1->getPositionX();
@@ -343,9 +357,8 @@ void RouletteLayer::spin() {
 				m_levelDislikes2->setString(std::to_string(level.likes).c_str());
 
 				m_diffSpr2 = CCSprite::createWithSpriteFrameName(g_spriteNames[level.diff].c_str());
-				m_diffSpr2->setScale(0.8f);
 				m_diffSpr2->setRotation(225.0f);
-				m_diffSpr2->setPosition({ 25.0f, 25.0f });
+				m_diffSpr2->setPosition({ 30.0f, 30.0f });
 				m_rouletteWheel->addChild(m_diffSpr2);
 
 				auto posX = m_levelDislikes2->getPositionX();
@@ -362,9 +375,8 @@ void RouletteLayer::spin() {
 				m_levelDislikes3->setString(std::to_string(level.likes).c_str());
 
 				m_diffSpr3 = CCSprite::createWithSpriteFrameName(g_spriteNames[level.diff].c_str());
-				m_diffSpr3->setScale(0.8f);
 				m_diffSpr3->setRotation(135.0f);
-				m_diffSpr3->setPosition({ -25.0f, 25.0f });
+				m_diffSpr3->setPosition({ -30.0f, 30.0f });
 				m_rouletteWheel->addChild(m_diffSpr3);
 
 				auto posX = m_levelDislikes3->getPositionX();
@@ -381,9 +393,8 @@ void RouletteLayer::spin() {
 				m_levelDislikes4->setString(std::to_string(level.likes).c_str());
 
 				m_diffSpr4 = CCSprite::createWithSpriteFrameName(g_spriteNames[level.diff].c_str());
-				m_diffSpr4->setScale(0.8f);
 				m_diffSpr4->setRotation(45.0f);
-				m_diffSpr4->setPosition({ -25.0f, -25.0f });
+				m_diffSpr4->setPosition({ -30.0f, -30.0f });
 				m_rouletteWheel->addChild(m_diffSpr4);
 
 				auto posX = m_levelDislikes4->getPositionX();
@@ -422,7 +433,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		if (g_afterSpin) g_spinsCount += 1;
 		m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
 
-		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames[g_currentLvl.diff].c_str());
+		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames1[g_currentLvl.diff].c_str());
 		m_diffSpr->setPosition({ 75.0f, 105.0f });
 
 		m_levelName = CCLabelBMFont::create(g_currentLvl.name.c_str(), "bigFont.fnt");
@@ -513,7 +524,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
 
 		if (m_diffSpr) m_mainLayer->removeChild(m_diffSpr);
-		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames[g_currentLvl.diff].c_str());
+		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames1[g_currentLvl.diff].c_str());
 		m_diffSpr->setPosition({ 75.0f, 105.0f });
 		m_diffSpr->setZOrder(1);
 
@@ -657,6 +668,10 @@ class $modify(PlayLayer) {
 			g_currentPercent = PlayLayer::getCurrentPercentInt();
 	}
 };
+
+// Исправил отображение всплывающего окна после выхода из него
+// Убрал возможность выхода из слоя с колесом на телефонах
+// Изменил спрайты сложностей на колесе
 
 //class $modify(LevelCell) {
 //	void loadFromLevel(GJGameLevel * level) {
