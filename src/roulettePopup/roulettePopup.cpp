@@ -266,8 +266,6 @@ bool RouletteLayer::setup() {
 	m_mainLayer->addChild(m_rouletteWheel);
 	m_mainLayer->addChild(arrow);
 
-	setKeyboardEnabled(true);
-	setKeypadEnabled(true);
 	readLevelData();
 	spin();
 
@@ -704,7 +702,6 @@ void RoulettePopup::keyDown(enumKeyCodes key) {
 void RouletteLayer::keyDown(enumKeyCodes key) {
 	switch (key) {
 	case KEY_Escape:
-	case CONTROLLER_Back:
 		break;
 	default:
 		Popup::keyDown(key);
@@ -725,7 +722,6 @@ class $modify(PlayLayer) {
 // Добавил оформление мода
 // Изменил спрайты сложностей на колесе
 // Исправил отображение всплывающего окна после выхода из него
-// Убрал возможность выхода из слоя с колесом на телефонах
 // Теперь мод успешно работает на всех платформах
 
 //class $modify(LevelCell) {
