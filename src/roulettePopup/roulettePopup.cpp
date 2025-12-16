@@ -50,7 +50,7 @@ namespace geode::prelude {
 	};
 
 	int g_spinsCount = 0;
-	int g_skipsCount = 0;
+	int g_skipsCount = Mod::get()->getSettingValue<int>("skips-count");;
 	int g_requirePercent = 1;
 	int g_currentPercent = 0;
 
@@ -266,7 +266,8 @@ bool RouletteLayer::setup() {
 	m_mainLayer->addChild(m_rouletteWheel);
 	m_mainLayer->addChild(arrow);
 
-	setKeypadEnabled(false);
+	setKeyboardEnabled(true);
+	setKeypadEnabled(true);
 	readLevelData();
 	spin();
 
@@ -303,6 +304,7 @@ void RouletteLayer::readLevelData() {
 
 void RouletteLayer::spin() {
 	static std::mt19937 mt(std::random_device{}());
+	g_spinsCount += 1;
 
 	if (g_worstLevels.size() >= 4) {
 		for (int i = 0; i < 4; i++) {
@@ -413,7 +415,6 @@ void RouletteLayer::spin() {
 	auto ease = SmoothExponentialOut::create(rotate);
 	auto callback1 = CCCallFunc::create(this, callfunc_selector(RouletteLayer::afterSpinOnLayer));
 	auto callback2 = CCCallFunc::create(g_popup, callfunc_selector(RoulettePopup::afterSpinOnPopup));
-	g_afterSpin = true;
 	auto seq = CCSequence::create(ease, callback1, callback2, nullptr);
 	m_rouletteWheel->runAction(seq);
 }
@@ -429,10 +430,7 @@ void RouletteLayer::afterSpinOnLayer() {
 void RoulettePopup::afterSpinOnPopup() {
 	if (g_spinsCount == 0) {
 		m_spinBtn->setVisible(false);
-		g_skipsCount = Mod::get()->getSettingValue<int>("skips-count");
-
-		if (g_afterSpin) g_spinsCount += 1;
-		m_spinsCount->setString(fmt::format("Number of spins: {}", g_spinsCount).c_str());
+		m_spinsCount->setString("Number of spins: 0");
 
 		m_resetBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_updateBtn_001.png", 1.0f, [this](auto) {
 			resetRoulette();
@@ -454,7 +452,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_dislikeSpr->setScale(0.75f);
 
 		m_levelDislikes = CCLabelBMFont::create(std::to_string(g_currentLvl.likes).c_str(), "bigFont.fnt");
-		m_levelDislikes->setScale(0.4f);
+		m_levelDislikes->setScale(0.35f);
 		m_levelDislikes->setPosition({ m_dislikeSpr->getPositionX() + m_dislikeSpr->getContentWidth() / 2.0f + m_levelDislikes->getContentWidth() * m_levelDislikes->getScale() / 2.0f, 105.0f });
 
 		m_playBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_playBtn2_001.png", 0.8f, [this](auto) {
@@ -528,7 +526,6 @@ void RoulettePopup::afterSpinOnPopup() {
 	}
 	else {
 		m_spinBtn->setVisible(false);
-		if (g_afterSpin) g_spinsCount += 1;
 		g_currentPercent = 0;
 		m_spinsCount->setString(fmt::format("Number of spins: {}", g_spinsCount).c_str());
 
@@ -561,7 +558,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		}
 		if (!m_levelDislikes) {
 			m_levelDislikes = CCLabelBMFont::create("", "bigFont.fnt");
-			m_levelDislikes->setScale(0.4f);
+			m_levelDislikes->setScale(0.35f);
 		}
 		m_levelDislikes->setString(std::to_string(g_currentLvl.likes).c_str());
 		m_levelDislikes->setPosition({ m_dislikeSpr->getPositionX() + m_dislikeSpr->getContentWidth() / 2.0f + m_levelDislikes->getContentWidth() * m_levelDislikes->getScale() / 2.0f, 105.0f });
@@ -669,12 +666,12 @@ void RoulettePopup::resetRoulette() {
 			g_currentLvl.likes = 0;
 
 			g_spinsCount = 0;
-			g_skipsCount = 0;
+			g_skipsCount = Mod::get()->getSettingValue<int>("skips-count");;
 			g_requirePercent = 1;
 			g_currentPercent = 0;
 
 			m_spinBtn->setVisible(true);
-			m_spinsCount->setString(fmt::format("Number of spins: {}", g_spinsCount).c_str());
+			m_spinsCount->setString("Number of spins: 0");
 
 			if (m_levelName) m_mainLayer->removeChild(m_levelName);
 			if (m_diffSpr) m_mainLayer->removeChild(m_diffSpr);
@@ -728,6 +725,7 @@ class $modify(PlayLayer) {
 // Изменил спрайты сложностей на колесе
 // Исправил отображение всплывающего окна после выхода из него
 // Убрал возможность выхода из слоя с колесом на телефонах
+// Теперь мод успешно работает на всех платформах
 
 //class $modify(LevelCell) {
 //	void loadFromLevel(GJGameLevel * level) {
