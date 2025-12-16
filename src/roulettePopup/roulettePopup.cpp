@@ -704,6 +704,7 @@ void RoulettePopup::keyDown(enumKeyCodes key) {
 void RouletteLayer::keyDown(enumKeyCodes key) {
 	switch (key) {
 	case KEY_Escape:
+	case CONTROLLER_Back:
 		break;
 	default:
 		Popup::keyDown(key);
