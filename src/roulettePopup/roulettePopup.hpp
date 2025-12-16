@@ -25,16 +25,20 @@ protected:
     CCMenuItemSpriteExtra* m_playBtn;
     CCMenuItemSpriteExtra* m_skipBtn;
     CCMenuItemSpriteExtra* m_nextBtn;
+    CCMenuItemSpriteExtra* m_resetBtn;
 
     CCSprite* m_diffSpr;
     CCSprite* m_dislikeSpr;
     CCLabelBMFont* m_levelName;
     CCLabelBMFont* m_levelDislikes;
-    CCLabelBMFont* m_requirePersent;
+    CCLabelBMFont* m_requirePercent;
     CCLabelBMFont* m_skipsCount;
+
+    CCScale9Sprite* m_requirePercentBG;
 
 	bool setup() override;
     void afterSpinOnPopup();
+    void resetRoulette();
 
     friend class RouletteLayer;
 };

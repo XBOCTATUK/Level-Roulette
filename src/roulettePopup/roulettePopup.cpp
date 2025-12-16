@@ -276,6 +276,7 @@ bool RouletteLayer::setup() {
 }
 
 void RouletteLayer::readLevelData() {
+	if (!g_levelData.empty()) return;
 	std::unordered_map<std::string, LevelData> worstLevelData;
 
 	auto data = geode::utils::file::readJson(Mod::get()->getResourcesDir() / "levelData.json");
@@ -305,12 +306,12 @@ void RouletteLayer::spin() {
 
 	if (g_worstLevels.size() >= 4) {
 		for (int i = 0; i < 4; i++) {
-			if (g_lvls.size() != 4)
-				g_lvls.push_back(g_worstLevels[std::uniform_int_distribution<int>(0, g_worstLevels.size() - 1)(mt)]);
+			if (g_lvls.size() != 4) g_lvls.push_back(g_worstLevels[std::uniform_int_distribution<int>(0, g_worstLevels.size() - 1)(mt)]);
 		}
 	}
 	else {
 		g_worstLevels.insert(g_worstLevels.end(), g_usedWorstLevels.begin(), g_usedWorstLevels.end());
+		g_usedWorstLevels.clear();
 		FLAlertLayer::create("Whoops!", "The levels are out! The list has been updated.", "Ok")->show();
 		return;
 	}
@@ -433,6 +434,13 @@ void RoulettePopup::afterSpinOnPopup() {
 		if (g_afterSpin) g_spinsCount += 1;
 		m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
 
+		m_resetBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_updateBtn_001.png", 1.0f, [this](auto) {
+			resetRoulette();
+		});
+		m_resetBtn->setPosition({ 320.0f, 240.0f });
+		m_resetBtn->setScale(0.8f);
+		m_resetBtn->m_baseScale = m_resetBtn->getScale();
+
 		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames1[g_currentLvl.diff].c_str());
 		m_diffSpr->setPosition({ 75.0f, 105.0f });
 
@@ -457,16 +465,16 @@ void RoulettePopup::afterSpinOnPopup() {
 			});
 		m_playBtn->setPosition({ 160.0f, 110.0f });
 
-		auto requirePercentBG = CCScale9Sprite::create("square02b_001.png");
-		requirePercentBG->setColor({ 0, 0, 0 });
-		requirePercentBG->setOpacity(50);
-		requirePercentBG->setContentSize({ 90.0f, 60.0f });
-		requirePercentBG->setScale(0.4f);
-		requirePercentBG->setPosition({ 160.0f, 40.0f });
+		m_requirePercentBG = CCScale9Sprite::create("square02b_001.png");
+		m_requirePercentBG->setColor({ 0, 0, 0 });
+		m_requirePercentBG->setOpacity(50);
+		m_requirePercentBG->setContentSize({ 90.0f, 60.0f });
+		m_requirePercentBG->setScale(0.4f);
+		m_requirePercentBG->setPosition({ 160.0f, 40.0f });
 
-		m_requirePersent = CCLabelBMFont::create(std::format("{}%", g_requirePercent).c_str(), "bigFont.fnt");
-		m_requirePersent->setScale(0.4f);
-		m_requirePersent->setPosition({ 160.0f, 40.0f });
+		m_requirePercent = CCLabelBMFont::create(std::format("{}%", g_requirePercent).c_str(), "bigFont.fnt");
+		m_requirePercent->setScale(0.4f);
+		m_requirePercent->setPosition({ 160.0f, 40.0f });
 
 		auto skipSpr = ButtonSprite::create("Skip", "bigFont.fnt", "GJ_button_03.png");
 		m_skipBtn = CCMenuItemExt::createSpriteExtra(skipSpr, [this](auto) {
@@ -510,18 +518,28 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_mainLayer->addChild(m_dislikeSpr);
 		m_mainLayer->addChild(m_levelDislikes);
 		m_mainLayer->addChild(m_levelName);
-		m_mainLayer->addChild(requirePercentBG);
-		m_mainLayer->addChild(m_requirePersent);
+		m_mainLayer->addChild(m_requirePercentBG);
+		m_mainLayer->addChild(m_requirePercent);
 		m_mainLayer->addChild(m_skipsCount);
 		m_buttonMenu->addChild(m_playBtn);
 		m_buttonMenu->addChild(m_skipBtn);
 		m_buttonMenu->addChild(m_nextBtn);
+		m_buttonMenu->addChild(m_resetBtn);
 	}
 	else {
 		m_spinBtn->setVisible(false);
 		if (g_afterSpin) g_spinsCount += 1;
 		g_currentPercent = 0;
 		m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
+
+		if (!m_resetBtn) {
+			m_resetBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_updateBtn_001.png", 1.0f, [this](auto) {
+				resetRoulette();
+				});
+			m_resetBtn->setPosition({ 320.0f, 240.0f });
+			m_resetBtn->setScale(0.8f);
+			m_resetBtn->m_baseScale = m_resetBtn->getScale();
+		}
 
 		if (m_diffSpr) m_mainLayer->removeChild(m_diffSpr);
 		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames1[g_currentLvl.diff].c_str());
@@ -560,19 +578,20 @@ void RoulettePopup::afterSpinOnPopup() {
 			m_playBtn->setPosition({ 160.0f, 110.0f });
 		}
 
-		if (!m_requirePersent) {
-			m_requirePersent = CCLabelBMFont::create("", "bigFont.fnt");
-			m_requirePersent->setScale(0.4f);
-			m_requirePersent->setPosition({ 160.0f, 40.0f });
+		if (!m_requirePercent) {
+			m_requirePercent = CCLabelBMFont::create("", "bigFont.fnt");
+			m_requirePercent->setScale(0.4f);
+			m_requirePercent->setPosition({ 160.0f, 40.0f });
 		}
-		m_requirePersent->setString(std::format("{}%", g_requirePercent).c_str());
-
-		auto requirePercentBG = CCScale9Sprite::create("square02b_001.png");
-		requirePercentBG->setColor({ 0, 0, 0 });
-		requirePercentBG->setOpacity(50);
-		requirePercentBG->setContentSize({ 90.0f, 60.0f });
-		requirePercentBG->setScale(0.4f);
-		requirePercentBG->setPosition({ 160.0f, 40.0f });
+		if (!m_requirePercentBG) {
+			m_requirePercentBG = CCScale9Sprite::create("square02b_001.png");
+			m_requirePercentBG->setColor({ 0, 0, 0 });
+			m_requirePercentBG->setOpacity(50);
+			m_requirePercentBG->setContentSize({ 90.0f, 60.0f });
+			m_requirePercentBG->setScale(0.4f);
+			m_requirePercentBG->setPosition({ 160.0f, 40.0f });
+		}
+		m_requirePercent->setString(std::format("{}%", g_requirePercent).c_str());
 
 		if (!m_skipsCount) {
 			m_skipsCount = CCLabelBMFont::create("", "goldFont.fnt");
@@ -626,15 +645,50 @@ void RoulettePopup::afterSpinOnPopup() {
 		if (!m_levelName->getParent()) m_mainLayer->addChild(m_levelName);
 		if (!m_levelDislikes->getParent()) m_mainLayer->addChild(m_levelDislikes);
 		if (!m_dislikeSpr->getParent()) m_mainLayer->addChild(m_dislikeSpr);
-		if (!m_requirePersent->getParent()) {
-			m_mainLayer->addChild(requirePercentBG);
-			m_mainLayer->addChild(m_requirePersent);
+		if (!m_requirePercent->getParent()) {
+			m_mainLayer->addChild(m_requirePercentBG);
+			m_mainLayer->addChild(m_requirePercent);
 		}
 		if (!m_skipsCount->getParent()) m_mainLayer->addChild(m_skipsCount);
 		if (!m_playBtn->getParent()) m_buttonMenu->addChild(m_playBtn);
 		if (!m_skipBtn->getParent()) m_buttonMenu->addChild(m_skipBtn);
 		if (!m_nextBtn->getParent()) m_buttonMenu->addChild(m_nextBtn);
+		if (!m_resetBtn->getParent()) m_buttonMenu->addChild(m_resetBtn);
 	}
+}
+
+void RoulettePopup::resetRoulette() {
+	createQuickPopup("Confirm reset", "Are you sure you want to reset the roulette?", "No", "Yes", [this](auto, bool yesBtn) {
+		if (yesBtn) {
+			g_worstLevels.insert(g_worstLevels.end(), g_usedWorstLevels.begin(), g_usedWorstLevels.end());
+			g_usedWorstLevels.clear();
+			g_lvls.clear();
+			g_currentLvl.name = "";
+			g_currentLvl.diff = "";
+			g_currentLvl.id = "";
+			g_currentLvl.likes = 0;
+
+			g_spinsCount = 0;
+			g_skipsCount = 0;
+			g_requirePercent = 1;
+			g_currentPercent = 0;
+
+			m_spinBtn->setVisible(true);
+			m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
+
+			if (m_levelName) m_mainLayer->removeChild(m_levelName);
+			if (m_diffSpr) m_mainLayer->removeChild(m_diffSpr);
+			if (m_levelDislikes) m_mainLayer->removeChild(m_levelDislikes);
+			if (m_dislikeSpr) m_mainLayer->removeChild(m_dislikeSpr);
+			if (m_skipsCount) m_mainLayer->removeChild(m_skipsCount);
+			if (m_requirePercent) m_mainLayer->removeChild(m_requirePercent);
+			if (m_requirePercentBG) m_mainLayer->removeChild(m_requirePercentBG);
+			if (m_playBtn) m_buttonMenu->removeChild(m_playBtn, true);
+			if (m_nextBtn) m_buttonMenu->removeChild(m_nextBtn, true);
+			if (m_skipBtn) m_buttonMenu->removeChild(m_skipBtn, true);
+			if (m_resetBtn) m_buttonMenu->removeChild(m_resetBtn, true);
+		}
+	});
 }
 
 void RoulettePopup::keyDown(enumKeyCodes key) {
@@ -669,9 +723,11 @@ class $modify(PlayLayer) {
 	}
 };
 
+// Добавил кнопку сброса рулетки
+// Добавил оформление мода
+// Изменил спрайты сложностей на колесе
 // Исправил отображение всплывающего окна после выхода из него
 // Убрал возможность выхода из слоя с колесом на телефонах
-// Изменил спрайты сложностей на колесе
 
 //class $modify(LevelCell) {
 //	void loadFromLevel(GJGameLevel * level) {

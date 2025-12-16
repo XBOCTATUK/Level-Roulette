@@ -8,7 +8,7 @@
 	"name": "Worst Demons Roulette",
 	"version": "v1.0.0",
 	"developer": "xboctatuk",
-	"description": "",
+	"description": "This mod adds a roulette button to the level search layer and allows you to try your unluck.",
 	"settings": {
 		"skips-count": {
 			"name": "Skips count",
@@ -31,5 +31,9 @@
 	},
 	"dependencies": {
 		"geode.node-ids": ">=v1.21.0"
-	}
+	},
+	"tags": [
+		"online",
+		"content"
+	]
 }
