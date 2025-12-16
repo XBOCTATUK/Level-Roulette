@@ -100,7 +100,7 @@ bool RoulettePopup::setup() {
 	closeBtn->setPosition(m_closeBtn->getPosition());
 	m_buttonMenu->addChild(closeBtn);
 
-	m_spinsCount = CCLabelBMFont::create(std::format("Number of spins: {}", g_spinsCount).c_str(), "bigFont.fnt");
+	m_spinsCount = CCLabelBMFont::create(fmt::format("Number of spins: {}", g_spinsCount).c_str(), "bigFont.fnt");
 	m_spinsCount->setScale(0.4f);
 	m_spinsCount->setPosition({ 160.0f, 202.0f });
 	m_mainLayer->addChild(m_spinsCount);
@@ -432,7 +432,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		g_skipsCount = Mod::get()->getSettingValue<int>("skips-count");
 
 		if (g_afterSpin) g_spinsCount += 1;
-		m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
+		m_spinsCount->setString(fmt::format("Number of spins: {}", g_spinsCount).c_str());
 
 		m_resetBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_updateBtn_001.png", 1.0f, [this](auto) {
 			resetRoulette();
@@ -472,7 +472,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_requirePercentBG->setScale(0.4f);
 		m_requirePercentBG->setPosition({ 160.0f, 40.0f });
 
-		m_requirePercent = CCLabelBMFont::create(std::format("{}%", g_requirePercent).c_str(), "bigFont.fnt");
+		m_requirePercent = CCLabelBMFont::create(fmt::format("{}%", g_requirePercent).c_str(), "bigFont.fnt");
 		m_requirePercent->setScale(0.4f);
 		m_requirePercent->setPosition({ 160.0f, 40.0f });
 
@@ -494,7 +494,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_skipBtn->m_baseScale = m_skipBtn->getScale();
 		m_skipBtn->setPosition({ 105.0f, 40.0f });
 
-		m_skipsCount = CCLabelBMFont::create(std::format("skips: {}", g_skipsCount).c_str(), "goldFont.fnt");
+		m_skipsCount = CCLabelBMFont::create(fmt::format("skips: {}", g_skipsCount).c_str(), "goldFont.fnt");
 		m_skipsCount->setScale(0.4f);
 		m_skipsCount->setPosition({ 160.0f, 64.0f });
 
@@ -530,7 +530,7 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_spinBtn->setVisible(false);
 		if (g_afterSpin) g_spinsCount += 1;
 		g_currentPercent = 0;
-		m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
+		m_spinsCount->setString(fmt::format("Number of spins: {}", g_spinsCount).c_str());
 
 		if (!m_resetBtn) {
 			m_resetBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_updateBtn_001.png", 1.0f, [this](auto) {
@@ -591,14 +591,14 @@ void RoulettePopup::afterSpinOnPopup() {
 			m_requirePercentBG->setScale(0.4f);
 			m_requirePercentBG->setPosition({ 160.0f, 40.0f });
 		}
-		m_requirePercent->setString(std::format("{}%", g_requirePercent).c_str());
+		m_requirePercent->setString(fmt::format("{}%", g_requirePercent).c_str());
 
 		if (!m_skipsCount) {
 			m_skipsCount = CCLabelBMFont::create("", "goldFont.fnt");
 			m_skipsCount->setScale(0.4f);
 			m_skipsCount->setPosition({ 160.0f, 64.0f });
 		}
-		m_skipsCount->setString(std::format("skips: {}", g_skipsCount).c_str());
+		m_skipsCount->setString(fmt::format("skips: {}", g_skipsCount).c_str());
 
 		if (!m_skipBtn) {
 			auto skipSpr = ButtonSprite::create("Skip", "bigFont.fnt", "GJ_button_03.png");
@@ -674,7 +674,7 @@ void RoulettePopup::resetRoulette() {
 			g_currentPercent = 0;
 
 			m_spinBtn->setVisible(true);
-			m_spinsCount->setString(std::format("Number of spins: {}", g_spinsCount).c_str());
+			m_spinsCount->setString(fmt::format("Number of spins: {}", g_spinsCount).c_str());
 
 			if (m_levelName) m_mainLayer->removeChild(m_levelName);
 			if (m_diffSpr) m_mainLayer->removeChild(m_diffSpr);
