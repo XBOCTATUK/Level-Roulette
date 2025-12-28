@@ -726,12 +726,6 @@ class $modify(PlayLayer) {
 	}
 };
 
-// Добавил кнопку сброса рулетки
-// Добавил оформление мода
-// Изменил спрайты сложностей на колесе
-// Исправил отображение всплывающего окна после выхода из него
-// Теперь мод успешно работает на всех платформах
-
 //class $modify(LevelCell) {
 //	void loadFromLevel(GJGameLevel * level) {
 //		LevelCell::loadFromLevel(level);
