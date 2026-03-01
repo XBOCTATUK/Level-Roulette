@@ -31,3 +31,9 @@ bool ListEditorPopup::init(bool isLevelAddition) {
 
     return true;
 }
+
+bool RouletteListCell::init() {
+	if (!CCNode::init()) return false;
+
+	return true;
+}
