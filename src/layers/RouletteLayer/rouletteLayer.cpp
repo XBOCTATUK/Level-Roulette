@@ -1,4 +1,4 @@
-#include "./roulette.hpp"
+#include "./rouletteLayer.hpp"
 
 RouletteLayer* RouletteLayer::create(RoulettePopup* popup) {
 	auto ret = new RouletteLayer();
@@ -72,52 +72,28 @@ bool RouletteLayer::init(RoulettePopup* popup) {
 	m_mainLayer->addChild(m_rouletteWheel);
 	m_mainLayer->addChild(arrow);
 
-	readLevelData();
 	spin(popup);
-
-	g_lvls.clear();
 
 	return true;
 }
 
-void RouletteLayer::readLevelData() {
-	if (!g_levelData.empty()) return;
-	std::unordered_map<std::string, LevelData> levelData;
-
-	auto data = geode::utils::file::readJson(Mod::get()->getResourcesDir() / "levelData.json");
-	if (data.isOk()) {
-		matjson::Value level = data.ok().value();
-		for (auto [key, value] : level) {
-			LevelData data;
-			int levelID = numFromString<int>(key, 10).unwrapOrDefault();
-			if (levelID == 0) continue;
-
-			data.likes = value["likes"].asInt().ok().value();
-			data.name = value["name"].asString().ok().value();
-			data.diff = value["diff"].asString().ok().value();
-			data.levelID = levelID;
-
-			levelData[key] = data;
-			g_levels.push_back(levelID);
-		}
-
-		g_levelData = levelData;
-	}
-	else log::info("levelData can't read.");
-}
-
 void RouletteLayer::spin(RoulettePopup* popup) {
 	static std::mt19937 mt(std::random_device{}());
+	auto& levels = Globals::getLevelsMutable();
+	auto& usedLevels = Globals::getUsedLevelsMutable();
+	auto& selectedLevels = Globals::getSelectedLevelsMutable();
+	auto& levelsData = Globals::getLevelData();
 
-	if (g_levels.size() >= 4) {
-		for (int i = 0; i < 4; i++) {
-			if (g_lvls.size() != 4) g_lvls.push_back(g_levels[std::uniform_int_distribution<int>(0, g_levels.size() - 1)(mt)]);
-		}
+	if (levels.size() >= 4) {
+		Globals::getSelectedLevelsMutable().clear();
+		std::shuffle(levels.begin(), levels.end(), mt);
+		selectedLevels.assign(levels.begin(), levels.begin() + 4);
 	}
 	else {
-		g_levels.insert(g_levels.end(), g_usedLevels.begin(), g_usedLevels.end());
-		g_usedLevels.clear();
+		levels.insert(levels.end(), usedLevels.begin(), usedLevels.end());
+		usedLevels.clear();
 		FLAlertLayer::create("Whoops!", "The levels are out! The list has been updated.", "Ok")->show();
+		
 		return;
 	}
 	
@@ -126,24 +102,27 @@ void RouletteLayer::spin(RoulettePopup* popup) {
 	int levelIndex = 0;
 	for (int i = 0; i < 4; i++) {
 		if (deltaAngle - (90.0f * i) < 90.0f) {
-			g_pastCurrentLvl = g_levelData[std::to_string(g_lvls[i])];
+			Globals::setPastLevel(Globals::getCurrentLevel());
+			Globals::setCurrentLevel(levelsData[std::to_string(selectedLevels[i])]);
 
-			g_levels.erase(std::find(g_levels.begin(), g_levels.end(), g_lvls[i]));
-			g_usedLevels.push_back(g_lvls[i]);
+			levels.erase(std::find(levels.begin(), levels.end(), selectedLevels[i]));
+			usedLevels.push_back(selectedLevels[i]);
 
 			break;
 		}
 	}
 
-	if (!g_levelData.empty()) {
+	if (!levelsData.empty()) {
 		for (int i = 0; i < 4; i++) {
-			LevelData level = g_levelData[std::to_string(g_lvls[i])];
+			auto diffColors = Globals::getDifficultyColors();
+			auto spriteNames = Globals::getSpriteNames();
+			LevelData level = levelsData[std::to_string(selectedLevels[i])];
 			
-			m_quadrants[i]->setColor(g_quadrantColors[level.diff]);
+			m_quadrants[i]->setColor(diffColors[level.diff]);
 			m_levelNames[i]->setString(level.name.c_str());
-			if (level.name.size() > 12) m_levelNames[i]->setScale(0.35f);
+			if (level.name.size() > 12) m_levelNames[i]->setScale(0.35f); // scs, amet, aver, aq, evr, 
 
-			auto diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames[level.diff].c_str());
+			auto diffSpr = CCSprite::createWithSpriteFrameName(spriteNames[level.diff].c_str());
 			diffSpr->setRotation(315.0f - 90.0f * i);
 			diffSpr->setPosition({ i > 1 ? -30.0f : 30.0f, i == 0 || i == 3 ? -30.0f : 30.0f });
 			m_rouletteWheel->addChild(diffSpr);

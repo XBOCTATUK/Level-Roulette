@@ -1,5 +1,7 @@
-#include "./roulette.hpp"
 #include <Geode/modify/PlayLayer.hpp>
+#include "../RoulettePopup/roulettePopup.hpp"
+#include "../ListEditorPopup/listEditorPopup.hpp"
+#include "../../layers/RouletteLayer/rouletteLayer.hpp"
 
 RoulettePopup* RoulettePopup::create() {
 	auto ret = new RoulettePopup();
@@ -25,15 +27,18 @@ bool RoulettePopup::init() {
 	bg->setPosition({ m_size.width / 2.0f, 105.0f });
 	m_mainLayer->addChild(bg);
 
-	m_spinsCount = CCLabelBMFont::create(fmt::format("Number of spins: {}", g_spinsCount).c_str(), "bigFont.fnt");
+	m_spinsCount = CCLabelBMFont::create(fmt::format("Number of spins: {}", Globals::getSpinsCount()).c_str(), "bigFont.fnt");
 	m_spinsCount->setScale(0.4f);
 	m_spinsCount->setPosition({ m_size.width / 2.0f, 202.0f });
 	m_mainLayer->addChild(m_spinsCount);
 
 	auto spinSpr = ButtonSprite::create("Start");
 	m_spinBtn = CCMenuItemExt::createSpriteExtra(spinSpr, [this](auto) {
-		if (g_currentLvl.levelID != 0) {
-			g_spinsCount -= 1;
+		if (!readLevelData()) return;
+
+		if (Globals::getPastLevel().levelID != 0) {
+			Globals::setSpinsCount(Globals::getSpinsCount()-1);
+			Globals::setCurrentLevel(Globals::getPastLevel());
 			afterSpinOnPopup();
 		}
 		else RouletteLayer::create(this)->show();
@@ -43,15 +48,60 @@ bool RoulettePopup::init() {
 	m_spinBtn->m_baseScale = 0.8f;
 	m_buttonMenu->addChild(m_spinBtn);
 
+	auto listsBtnSpr = CCSprite::createWithSpriteFrameName("GJ_viewListsBtn_001.png");
+	listsBtnSpr->setScale(0.8f);
+	m_listsBtn = CCMenuItemExt::createSpriteExtra(listsBtnSpr, [this](auto) { onListsBtn(); });
+	m_listsBtn->setPosition(m_buttonMenu->getContentSize());
+	m_buttonMenu->addChild(m_listsBtn);
+
 	return true;
 }
 
+bool RoulettePopup::readLevelData() {
+	if (!Globals::getLevelData().empty()) return true;
+	if (Globals::getCurrentListName().empty()) {
+		FLAlertLayer::create(
+			"No list selected",
+			"You must select a list of levels before using the roulette.",
+			"Ok"
+		)->show();
+		return false;
+	}
+
+	std::unordered_map<std::string, LevelData> levelsData;
+
+	auto data = Globals::getListsData();
+	if (data.size() != 0) {
+		auto currentList = data[Globals::getCurrentListName()];
+		for (auto [key, value] : currentList) {
+			LevelData levelData;
+			int levelID = numFromString<int>(key, 10).unwrapOrDefault();
+			if (levelID == 0) continue;
+
+			levelData.name = value["name"].asString().ok().value();
+			levelData.creator = value["creator"].asString().ok().value();
+			levelData.diff = value["diff"].asString().ok().value();
+			levelData.levelID = levelID;
+
+			levelsData[key] = levelData;
+			Globals::getLevelsMutable().push_back(levelID);
+		}
+
+		Globals::setLevelData(levelsData);
+		return true;
+	}
+	else return false;
+}
+
 void RoulettePopup::afterSpinOnPopup() {
-	g_spinsCount += 1;
-	g_currentLvl = g_pastCurrentLvl;
-	if (g_spinsCount == 1) {
+	Globals::setSpinsCount(Globals::getSpinsCount() + 1);
+	LevelData emptyData;
+	Globals::setPastLevel(emptyData);
+
+	if (Globals::getSpinsCount() == 1) {
 		m_spinBtn->setVisible(false);
 		m_spinsCount->setString("Number of spins: 1");
+		m_listsBtn->setVisible(false);
 
 		m_resetBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_updateBtn_001.png", 1.0f, [this](auto) {
 			resetRoulette();
@@ -60,18 +110,19 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_resetBtn->setScale(0.8f);
 		m_resetBtn->m_baseScale = m_resetBtn->getScale();
 
-		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames1[g_currentLvl.diff].c_str());
+		auto altSpriteNames = Globals::getAltSpriteNames();
+		m_diffSpr = CCSprite::createWithSpriteFrameName(altSpriteNames[Globals::getCurrentLevel().diff].c_str());
 		m_diffSpr->setPosition({ 75.0f, 105.0f });
 		m_diffSpr->setZOrder(1);
 
-		m_levelName = CCLabelBMFont::create(g_currentLvl.name.c_str(), "bigFont.fnt");
-		if (g_currentLvl.name.size() > 12) m_levelName->setScale(0.5f);
+		m_levelName = CCLabelBMFont::create(Globals::getCurrentLevel().name.c_str(), "bigFont.fnt");
+		if (Globals::getCurrentLevel().name.size() > 12) m_levelName->setScale(0.5f);
 		else m_levelName->setScale(0.7f);
 		m_levelName->setPosition({ 160.0f, 170.0f });
 		m_levelName->setZOrder(1);
 
 		m_playBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_playBtn2_001.png", 0.8f, [this](auto) {
-			auto searchObj = GJSearchObject::create(SearchType::Search, std::to_string(g_currentLvl.levelID));
+			auto searchObj = GJSearchObject::create(SearchType::Search, std::to_string(Globals::getCurrentLevel().levelID));
 
 			auto lbl = LevelBrowserLayer::scene(searchObj);
 			CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5, lbl));
@@ -86,23 +137,23 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_requirePercentBG->setPosition({ 160.0f, 40.0f });
 		m_requirePercentBG->setZOrder(1);
 
-		m_requirePercent = CCLabelBMFont::create(fmt::format("{}%", g_requirePercent).c_str(), "bigFont.fnt");
+		m_requirePercent = CCLabelBMFont::create(fmt::format("{}%", Globals::getRequirePercent()).c_str(), "bigFont.fnt");
 		m_requirePercent->setScale(0.4f);
 		m_requirePercent->setPosition({ 160.0f, 40.0f });
 		m_requirePercent->setZOrder(1);
 
 		auto skipSpr = ButtonSprite::create("Skip", "bigFont.fnt", "GJ_button_03.png");
 		m_skipBtn = CCMenuItemExt::createSpriteExtra(skipSpr, [this](auto) {
-			if (g_requirePercent == 100) {
+			if (Globals::getRequirePercent() == 100) {
 				FLAlertLayer::create("Congrats", "You passed the roulette. =3", "Hurray!")->show();
 			}
-			else if (g_skipsCount == 0) {
+			else if (Globals::getSkipsCount() == 0) {
 				FLAlertLayer::create("Nope", "You spent all your skips. =3", "Ok")->show();
 			}
 			else {
-				g_skipsCount -= 1;
-				g_requirePercent += 1;
-				g_currentPercent = 0;
+				Globals::setSkipsCount(Globals::getSkipsCount() - 1);
+				Globals::setRequirePercent(Globals::getRequirePercent() + 1);
+				Globals::setCurrentPercent(0);
 				RouletteLayer::create(this)->show();
 			}
 		});
@@ -110,22 +161,22 @@ void RoulettePopup::afterSpinOnPopup() {
 		m_skipBtn->m_baseScale = m_skipBtn->getScale();
 		m_skipBtn->setPosition({ 105.0f, 40.0f });
 
-		m_skipsCount = CCLabelBMFont::create(fmt::format("skips: {}", g_skipsCount).c_str(), "goldFont.fnt");
+		m_skipsCount = CCLabelBMFont::create(fmt::format("skips: {}", Globals::getSkipsCount()).c_str(), "goldFont.fnt");
 		m_skipsCount->setScale(0.4f);
 		m_skipsCount->setPosition({ 160.0f, 64.0f });
 		m_skipsCount->setZOrder(1);
 
 		auto nextSpr = ButtonSprite::create("Next", "bigFont.fnt", "GJ_button_01.png");
 		m_nextBtn = CCMenuItemExt::createSpriteExtra(nextSpr, [this](auto) {
-			if (g_requirePercent > 100) {
+			if (Globals::getRequirePercent() > 100) {
 				FLAlertLayer::create("Congrats", "You passed the roulette. =3", "Hurray!")->show();
 			}
-			else if (g_currentPercent < g_requirePercent) {
+			else if (Globals::getCurrentPercent() < Globals::getRequirePercent()) {
 				FLAlertLayer::create("Nope", "You haven't reached the required percentage. =3", "Ok")->show();
 			}
 			else {
-				g_requirePercent += 1;
-				g_currentPercent = 0;
+				Globals::setRequirePercent(Globals::getRequirePercent() + 1);
+				Globals::setCurrentPercent(0);
 				RouletteLayer::create(this)->show();
 			}
 		});
@@ -145,7 +196,7 @@ void RoulettePopup::afterSpinOnPopup() {
 	}
 	else {
 		m_spinBtn->setVisible(false);
-		m_spinsCount->setString(fmt::format("Number of spins: {}", g_spinsCount).c_str());
+		m_spinsCount->setString(fmt::format("Number of spins: {}", Globals::getSpinsCount()).c_str());
 
 		if (!m_resetBtn) {
 			m_resetBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_updateBtn_001.png", 1.0f, [this](auto) {
@@ -157,21 +208,22 @@ void RoulettePopup::afterSpinOnPopup() {
 		}
 
 		if (m_diffSpr) m_mainLayer->removeChild(m_diffSpr);
-		m_diffSpr = CCSprite::createWithSpriteFrameName(g_spriteNames1[g_currentLvl.diff].c_str());
+		auto altSpriteNames = Globals::getAltSpriteNames();
+		m_diffSpr = CCSprite::createWithSpriteFrameName(altSpriteNames[Globals::getCurrentLevel().diff].c_str());
 		m_diffSpr->setPosition({ 75.0f, 105.0f });
 		m_diffSpr->setZOrder(1);
 
 		if (!m_levelName) {
 			m_levelName = CCLabelBMFont::create("", "bigFont.fnt");
-			if (g_currentLvl.name.size() > 12) m_levelName->setScale(0.5f);
+			if (Globals::getCurrentLevel().name.size() > 12) m_levelName->setScale(0.5f);
 			else m_levelName->setScale(0.7f);
 			m_levelName->setPosition({ 160.0f, 170.0f });
 		}
-		m_levelName->setString(g_currentLvl.name.c_str());
+		m_levelName->setString(Globals::getCurrentLevel().name.c_str());
 
 		if (!m_playBtn) {
 			m_playBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_playBtn2_001.png", 0.8f, [this](auto) {
-				auto searchObj = GJSearchObject::create(SearchType::Search, std::to_string(g_currentLvl.levelID));
+				auto searchObj = GJSearchObject::create(SearchType::Search, std::to_string(Globals::getCurrentLevel().levelID));
 				log::info("suuus");
 
 				auto lbl = LevelBrowserLayer::scene(searchObj);
@@ -194,28 +246,29 @@ void RoulettePopup::afterSpinOnPopup() {
 			m_requirePercentBG->setScale(0.4f);
 			m_requirePercentBG->setPosition({ 160.0f, 40.0f });
 		}
-		m_requirePercent->setString(fmt::format("{}%", g_requirePercent).c_str());
+		m_requirePercent->setString(fmt::format("{}%", Globals::getRequirePercent()).c_str());
 
 		if (!m_skipsCount) {
 			m_skipsCount = CCLabelBMFont::create("", "goldFont.fnt");
 			m_skipsCount->setScale(0.4f);
 			m_skipsCount->setPosition({ 160.0f, 64.0f });
 		}
-		m_skipsCount->setString(fmt::format("skips: {}", g_skipsCount).c_str());
+		m_skipsCount->setString(fmt::format("skips: {}", Globals::getSkipsCount()).c_str());
 
 		if (!m_skipBtn) {
 			auto skipSpr = ButtonSprite::create("Skip", "bigFont.fnt", "GJ_button_03.png");
 			m_skipBtn = CCMenuItemExt::createSpriteExtra(skipSpr, [this](auto) {
-				if (g_requirePercent == 100) {
+				if (Globals::getRequirePercent() == 100) {
 					FLAlertLayer::create("Congrats", "You passed the roulette. =3", "Hurray!")->show();
 				}
-				else if (g_skipsCount == 0) {
+				else if (Globals::getSkipsCount() == 0) {
 					FLAlertLayer::create("Nope", "You spent all your skips. =3", "Ok")->show();
 				}
 				else {
-					g_skipsCount -= 1;
-					g_requirePercent += 1;
-					g_currentPercent = 0;
+					Globals::setSkipsCount(Globals::getSkipsCount() - 1);
+					Globals::setRequirePercent(Globals::getRequirePercent() + 1);
+					Globals::setCurrentPercent(0);
+
 					RouletteLayer::create(this)->show();
 				}
 				});
@@ -227,15 +280,16 @@ void RoulettePopup::afterSpinOnPopup() {
 		if (!m_nextBtn) {
 			auto nextSpr = ButtonSprite::create("Next", "bigFont.fnt", "GJ_button_01.png");
 			m_nextBtn = CCMenuItemExt::createSpriteExtra(nextSpr, [this](auto) {
-				if (g_requirePercent == 100) {
+				if (Globals::getRequirePercent() == 100) {
 					FLAlertLayer::create("Congrats", "You passed the roulette. =3", "Hurray!")->show();
 				}
-				else if (g_currentPercent < g_requirePercent) {
+				else if (Globals::getCurrentPercent() < Globals::getRequirePercent()) {
 					FLAlertLayer::create("Nope", "You haven't reached the required percentage. =3", "Ok")->show();
 				}
 				else {
-					g_requirePercent += 1;
-					g_currentPercent = 0;
+					Globals::setRequirePercent(Globals::getRequirePercent() + 1);
+					Globals::setCurrentPercent(0);
+
 					RouletteLayer::create(this)->show();
 				}
 				});
@@ -244,7 +298,7 @@ void RoulettePopup::afterSpinOnPopup() {
 			m_nextBtn->setPosition({ 215.0f, 40.0f });
 		}
 
-		if (g_currentLvl.name.size() > 12) m_levelName->setScale(0.5f);
+		if (Globals::getCurrentLevel().name.size() > 12) m_levelName->setScale(0.5f);
 		else m_levelName->setScale(0.7f);
 
 		m_mainLayer->addChild(m_diffSpr);
@@ -264,17 +318,21 @@ void RoulettePopup::afterSpinOnPopup() {
 void RoulettePopup::resetRoulette() {
 	createQuickPopup("Confirm reset", "Are you sure you want to reset the roulette?", "No", "Yes", [this](auto, bool yesBtn) {
 		if (yesBtn) {
-			g_levels.insert(g_levels.end(), g_usedLevels.begin(), g_usedLevels.end());
-			g_usedLevels.clear();
-			g_lvls.clear();
-			g_currentLvl = LevelData();
+			auto& levels = Globals::getLevelsMutable();
+			auto& usedLevels = Globals::getUsedLevelsMutable();
+			auto& selectedLevels = Globals::getSelectedLevelsMutable();
+			levels.insert(levels.end(), usedLevels.begin(), usedLevels.end());
+			usedLevels.clear();
+			selectedLevels.clear();
+			Globals::getCurrentLevel().setDefault();
 
-			g_spinsCount = 0;
-			g_skipsCount = Mod::get()->getSettingValue<int>("skips-count");;
-			g_requirePercent = 1;
-			g_currentPercent = 0;
+			Globals::setSpinsCount(0);
+			Globals::setSkipsCount(Mod::get()->getSettingValue<int>("skips-count"));
+			Globals::setRequirePercent(1);
+			Globals::setCurrentPercent(0);
 
 			m_spinBtn->setVisible(true);
+			m_listsBtn->setVisible(true);
 			m_spinsCount->setString("Number of spins: 0");
 
 			if (m_levelName) m_mainLayer->removeChild(m_levelName);
@@ -288,6 +346,10 @@ void RoulettePopup::resetRoulette() {
 			if (m_resetBtn) m_buttonMenu->removeChild(m_resetBtn, true);
 		}
 	});
+}
+
+void RoulettePopup::onListsBtn() {
+	ListEditorPopup::create(nullptr, false)->show();
 }
 
 void RoulettePopup::keyDown(enumKeyCodes key, double d) {

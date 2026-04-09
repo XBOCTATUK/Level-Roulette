@@ -1,5 +1,5 @@
 {
-	"geode": "5.2.0",
+	"geode": "5.5.3",
 	"gd": {
 		"win": "2.2081",
 		"android": "2.2081",
@@ -17,7 +17,7 @@
 			"type": "int",
 			"default": 3,
 			"min": 0,
-			"max": 10,
+			"max": 100,
 			"control": {
 				"slider": true
 			}
@@ -32,13 +32,10 @@
 	"resources": {
 		"sprites": [
 			"resources/*.png"
-		],
-		"files": [
-			"resources/levelData.json"
 		]
 	},
 	"dependencies": {
-		"geode.node-ids": ">=v1.22.0"
+		"geode.node-ids": ">=v1.23.3"
 	},
 	"tags": [
 		"online",
