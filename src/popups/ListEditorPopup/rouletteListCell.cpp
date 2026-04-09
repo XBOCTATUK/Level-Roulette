@@ -107,9 +107,9 @@ void RouletteListCell::onAdd(GJGameLevel* level, std::string listName) {
 	auto data = Globals::getListsData();
 
 	auto levelData = matjson::Value::object();
-	levelData["name"] = level->m_levelName;
+	levelData["name"] = std::string(level->m_levelName);
 	levelData["levelID"] = level->m_levelID.value();
-	levelData["creator"] = level->m_creatorName;
+	levelData["creator"] = std::string(level->m_creatorName);
 	levelData["diff"] = getDiff(level);
 
 	auto idStr = std::to_string(level->m_levelID.value());
