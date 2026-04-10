@@ -11,6 +11,7 @@ protected:
     ListenerHandle m_spinListener;
     ListenerHandle m_afterSpinListener;
 
+    std::vector<CCNode*> m_uiEls;
 	CCLabelBMFont* m_spinsCount;
     CCMenuItemSpriteExtra* m_spinBtn;
     CCMenuItemSpriteExtra* m_playBtn;

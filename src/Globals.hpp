@@ -15,6 +15,17 @@ struct LevelData {
         this->diff = "";
         this->levelID = 0;
     }
+
+    bool operator==(const LevelData& other) const {
+        return name == other.name &&
+               creator == other.creator &&
+               diff == other.diff &&
+               levelID == other.levelID;
+    }
+
+    bool operator!=(const LevelData& other) const {
+        return !(*this == other);
+    }
 };
 
 class Globals {
@@ -34,7 +45,6 @@ public:
     static std::unordered_map<std::string, LevelData>& getLevelData() { return g_levelData; }
 
     static LevelData& getCurrentLevel() { return g_currentLvl; }
-    static LevelData& getPastLevel() { return g_pastLvl; }
 
     static int& getSpinsCount() { return g_spinsCount; }
     static int& getRequirePercent() { return g_requirePercent; }
@@ -43,7 +53,6 @@ public:
     static std::string& getCurrentListName() { return g_currentListName; }
 
     static void setCurrentLevel(LevelData& level) { g_currentLvl = level; }
-    static void setPastLevel(LevelData& level) { g_pastLvl = level; }
     static void setLevelData(std::unordered_map<std::string, LevelData>& levelData) { g_levelData = levelData; }
     static void setSpinsCount(int count) { g_spinsCount = count; }
     static void setSkipsCount(int count) { g_skipsCount = count; }
@@ -52,15 +61,45 @@ public:
     static void setCurrentListName(std::string name) { g_currentListName = name; }
 
 
-    static std::filesystem::path getFilePath() {
+    static geode::Result<std::filesystem::path> getFilePath() {
         auto modFolder = geode::dirs::getModPersistentDir() / Mod::get()->getID();
         auto filePath = modFolder / "lists.json";
 
-        return filePath;
+        if (!std::filesystem::exists(modFolder)) {
+            auto result = file::createDirectoryAll(modFolder);
+            if (result.isErr()) {
+                return geode::Err("Failed to create mod directory");
+            }
+        }
+
+        return geode::Ok(filePath);
     }
 
     static matjson::Value getListsData() {
-        auto readData = file::readJson(getFilePath());
+        auto filePath = getFilePath();
+        if (filePath.isErr()) {
+            FLAlertLayer::create(
+                "Error",
+                "Failed to open the lists file. Please try again later.",
+                "Ok"
+            )->show();
+
+            return matjson::Value::object();
+        }
+
+        if (!std::filesystem::exists(filePath.unwrap())) {
+            auto empty = matjson::Value::object();
+            auto writeResult = file::writeToJson(filePath.unwrap(), empty);
+            if (writeResult.isErr()) {
+                FLAlertLayer::create(
+                    "Error",
+                    "Failed to create the list. Please try again later.",
+                    "Ok"
+                )->show();
+            }
+        }
+
+        auto readData = file::readJson(filePath.unwrap());
         if (readData.isErr()) {
             FLAlertLayer::create(
                 "Error",
@@ -69,13 +108,23 @@ public:
             )->show();
             return matjson::Value::object();
         }
-        auto data = readData.ok().value();
+        auto data = readData.unwrap();
 
         return data;
     }
 
     static void setListsData(matjson::Value& data) {
-        auto writeResult = file::writeToJson(getFilePath(), data);
+        auto filePath = getFilePath();
+        if (filePath.isErr()) {
+            FLAlertLayer::create(
+                "Error",
+                "Failed to save the list. Please try again later.",
+                "Ok"
+            )->show();
+            return;
+        }
+
+        auto writeResult = file::writeToJson(filePath.unwrap(), data);
         if (writeResult.isErr()) {
             FLAlertLayer::create(
                 "Error",
