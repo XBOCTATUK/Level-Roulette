@@ -41,7 +41,7 @@ bool RoulettePopup::init() {
 			Globals::setCurrentLevel(Globals::getPastLevel());
 			afterSpinOnPopup();
 		}
-		else RouletteLayer::create(this)->show();
+		else levelChoice();
 	});
 	m_spinBtn->setPosition({ m_size.width / 2.0f, 110.0f });
 	m_spinBtn->setScale(0.8f);
@@ -53,6 +53,18 @@ bool RoulettePopup::init() {
 	m_listsBtn = CCMenuItemExt::createSpriteExtra(listsBtnSpr, [this](auto) { onListsBtn(); });
 	m_listsBtn->setPosition(m_buttonMenu->getContentSize());
 	m_buttonMenu->addChild(m_listsBtn);
+
+	m_spinListener = StartSpinEvent().listen(
+		[this](float deltaAngle) {
+			RouletteLayer::create(deltaAngle)->show();
+		}
+	);
+
+	m_afterSpinListener = AfterSpinEvent().listen(
+		[this]() {
+			afterSpinOnPopup();
+		}
+	);
 
 	return true;
 }
@@ -93,6 +105,45 @@ bool RoulettePopup::readLevelData() {
 	else return false;
 }
 
+void RoulettePopup::levelChoice() {
+	static std::mt19937 mt(std::random_device{}());
+	auto& levels = Globals::getLevelsMutable();
+	auto& usedLevels = Globals::getUsedLevelsMutable();
+	auto& selectedLevels = Globals::getSelectedLevelsMutable();
+	auto& levelsData = Globals::getLevelData();
+
+	if (levels.size() >= 4) {
+		Globals::getSelectedLevelsMutable().clear();
+		std::shuffle(levels.begin(), levels.end(), mt);
+		selectedLevels.assign(levels.begin(), levels.begin() + 4);
+	}
+	else {
+		levels.insert(levels.end(), usedLevels.begin(), usedLevels.end());
+		usedLevels.clear();
+		FLAlertLayer::create("Whoops!", "The levels are out! The list has been restored.", "Ok")->show();
+		resetRoulette();
+
+		return;
+	}
+
+	float deltaAngle = std::uniform_real_distribution<float>(0.0f, 360.0f)(mt);
+
+	int levelIndex = 0;
+	for (int i = 0; i < 4; i++) {
+		if (deltaAngle - (90.0f * i) < 90.0f) {
+			Globals::setPastLevel(Globals::getCurrentLevel());
+			Globals::setCurrentLevel(levelsData[std::to_string(selectedLevels[i])]);
+
+			levels.erase(std::find(levels.begin(), levels.end(), selectedLevels[i]));
+			usedLevels.push_back(selectedLevels[i]);
+
+			break;
+		}
+	}
+
+	StartSpinEvent().send(deltaAngle);
+}
+
 void RoulettePopup::afterSpinOnPopup() {
 	Globals::setSpinsCount(Globals::getSpinsCount() + 1);
 	LevelData emptyData;
@@ -104,8 +155,10 @@ void RoulettePopup::afterSpinOnPopup() {
 
 	if (!m_resetBtn) {
 		m_resetBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_updateBtn_001.png", 1.0f, [this](auto) {
-			resetRoulette();
+			createQuickPopup("Confirm reset", "Are you sure you want to reset the roulette?", "No", "Yes", [this](auto, bool yesBtn) {
+				if (yesBtn) { resetRoulette(); }
 			});
+		});
 		m_resetBtn->setPosition({ 320.0f, 240.0f });
 		m_resetBtn->setScale(0.8f);
 		m_resetBtn->m_baseScale = m_resetBtn->getScale();
@@ -182,7 +235,7 @@ void RoulettePopup::afterSpinOnPopup() {
 				Globals::setRequirePercent(Globals::getRequirePercent() + 1);
 				Globals::setCurrentPercent(0);
 
-				RouletteLayer::create(this)->show();
+				levelChoice();
 			}
 			});
 		m_skipBtn->setScale(0.65f);
@@ -204,7 +257,7 @@ void RoulettePopup::afterSpinOnPopup() {
 				Globals::setRequirePercent(Globals::getRequirePercent() + 1);
 				Globals::setCurrentPercent(0);
 
-				RouletteLayer::create(this)->show();
+				levelChoice();
 			}
 			});
 		m_nextBtn->setScale(0.65f);
@@ -227,36 +280,32 @@ void RoulettePopup::afterSpinOnPopup() {
 }
 
 void RoulettePopup::resetRoulette() {
-	createQuickPopup("Confirm reset", "Are you sure you want to reset the roulette?", "No", "Yes", [this](auto, bool yesBtn) {
-		if (yesBtn) {
-			auto& levels = Globals::getLevelsMutable();
-			auto& usedLevels = Globals::getUsedLevelsMutable();
-			auto& selectedLevels = Globals::getSelectedLevelsMutable();
-			levels.insert(levels.end(), usedLevels.begin(), usedLevels.end());
-			usedLevels.clear();
-			selectedLevels.clear();
-			Globals::getCurrentLevel().setDefault();
+	auto& levels = Globals::getLevelsMutable();
+	auto& usedLevels = Globals::getUsedLevelsMutable();
+	auto& selectedLevels = Globals::getSelectedLevelsMutable();
+	levels.insert(levels.end(), usedLevels.begin(), usedLevels.end());
+	usedLevels.clear();
+	selectedLevels.clear();
+	Globals::getCurrentLevel().setDefault();
 
-			Globals::setSpinsCount(0);
-			Globals::setSkipsCount(Mod::get()->getSettingValue<int>("skips-count"));
-			Globals::setRequirePercent(1);
-			Globals::setCurrentPercent(0);
+	Globals::setSpinsCount(0);
+	Globals::setSkipsCount(Mod::get()->getSettingValue<int>("skips-count"));
+	Globals::setRequirePercent(1);
+	Globals::setCurrentPercent(0);
 
-			m_spinBtn->setVisible(true);
-			m_listsBtn->setVisible(true);
-			m_spinsCount->setString("Number of spins: 0");
+	m_spinBtn->setVisible(true);
+	m_listsBtn->setVisible(true);
+	m_spinsCount->setString("Number of spins: 0");
 
-			if (m_levelName) m_mainLayer->removeChild(m_levelName);
-			if (m_diffSpr) m_mainLayer->removeChild(m_diffSpr);
-			if (m_skipsCount) m_mainLayer->removeChild(m_skipsCount);
-			if (m_requirePercent) m_mainLayer->removeChild(m_requirePercent);
-			if (m_requirePercentBG) m_mainLayer->removeChild(m_requirePercentBG);
-			if (m_playBtn) m_buttonMenu->removeChild(m_playBtn, true);
-			if (m_nextBtn) m_buttonMenu->removeChild(m_nextBtn, true);
-			if (m_skipBtn) m_buttonMenu->removeChild(m_skipBtn, true);
-			if (m_resetBtn) m_buttonMenu->removeChild(m_resetBtn, true);
-		}
-	});
+	if (m_levelName) m_mainLayer->removeChild(m_levelName);
+	if (m_diffSpr) m_mainLayer->removeChild(m_diffSpr);
+	if (m_skipsCount) m_mainLayer->removeChild(m_skipsCount);
+	if (m_requirePercent) m_mainLayer->removeChild(m_requirePercent);
+	if (m_requirePercentBG) m_mainLayer->removeChild(m_requirePercentBG);
+	if (m_playBtn) m_buttonMenu->removeChild(m_playBtn, true);
+	if (m_nextBtn) m_buttonMenu->removeChild(m_nextBtn, true);
+	if (m_skipBtn) m_buttonMenu->removeChild(m_skipBtn, true);
+	if (m_resetBtn) m_buttonMenu->removeChild(m_resetBtn, true);
 }
 
 void RoulettePopup::onListsBtn() {

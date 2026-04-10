@@ -2,20 +2,22 @@
 
 #include "../../Globals.hpp"
 #include "../../popups/RoulettePopup/roulettePopup.hpp"
+#include "../../events/startSpinEvent.hpp"
+#include "../../events/afterSpinEvent.hpp"
 
 class RouletteLayer : public geode::Popup {
 public:
-	static RouletteLayer* create(RoulettePopup* popup);
+	static RouletteLayer* create(float deltaAngle);
 
 protected:
-    RoulettePopup* m_popup;
+    ListenerHandle m_afterSpinListener;
     
 	CCMenu* m_rouletteWheel;
     std::vector<CCSprite*> m_quadrants;
     std::vector<CCLabelBMFont*> m_levelNames;
 
-    bool init(RoulettePopup* popup);
-    void spin(RoulettePopup* popup);
+    bool init(float deltaAngle);
+    void spin(float deltaAngle);
     void afterSpinOnLayer();
     void keyDown(enumKeyCodes key, double d) override;
 };

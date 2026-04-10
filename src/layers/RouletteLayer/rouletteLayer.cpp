@@ -1,8 +1,8 @@
 #include "./rouletteLayer.hpp"
 
-RouletteLayer* RouletteLayer::create(RoulettePopup* popup) {
+RouletteLayer* RouletteLayer::create(float deltaAngle) {
 	auto ret = new RouletteLayer();
-	if (ret && ret->init(popup)) {
+	if (ret && ret->init(deltaAngle)) {
 		ret->autorelease();
 		return ret;
 	}
@@ -10,7 +10,7 @@ RouletteLayer* RouletteLayer::create(RoulettePopup* popup) {
 	return nullptr;
 }
 
-bool RouletteLayer::init(RoulettePopup* popup) {
+bool RouletteLayer::init(float deltaAngle) {
 	if (!Popup::init(525.0f, 280.0f)) return false;
 
 	m_bgSprite->setVisible(false);
@@ -72,45 +72,21 @@ bool RouletteLayer::init(RoulettePopup* popup) {
 	m_mainLayer->addChild(m_rouletteWheel);
 	m_mainLayer->addChild(arrow);
 
-	spin(popup);
+	spin(deltaAngle);
+
+	m_afterSpinListener = AfterSpinEvent().listen(
+		[this]() {
+			afterSpinOnLayer();
+		}
+	);
 
 	return true;
 }
 
-void RouletteLayer::spin(RoulettePopup* popup) {
+void RouletteLayer::spin(float deltaAngle) {
 	static std::mt19937 mt(std::random_device{}());
-	auto& levels = Globals::getLevelsMutable();
-	auto& usedLevels = Globals::getUsedLevelsMutable();
 	auto& selectedLevels = Globals::getSelectedLevelsMutable();
 	auto& levelsData = Globals::getLevelData();
-
-	if (levels.size() >= 4) {
-		Globals::getSelectedLevelsMutable().clear();
-		std::shuffle(levels.begin(), levels.end(), mt);
-		selectedLevels.assign(levels.begin(), levels.begin() + 4);
-	}
-	else {
-		levels.insert(levels.end(), usedLevels.begin(), usedLevels.end());
-		usedLevels.clear();
-		FLAlertLayer::create("Whoops!", "The levels are out! The list has been updated.", "Ok")->show();
-		
-		return;
-	}
-	
-	float deltaAngle = std::uniform_real_distribution<float>(0.0f, 360.0f)(mt);
-
-	int levelIndex = 0;
-	for (int i = 0; i < 4; i++) {
-		if (deltaAngle - (90.0f * i) < 90.0f) {
-			Globals::setPastLevel(Globals::getCurrentLevel());
-			Globals::setCurrentLevel(levelsData[std::to_string(selectedLevels[i])]);
-
-			levels.erase(std::find(levels.begin(), levels.end(), selectedLevels[i]));
-			usedLevels.push_back(selectedLevels[i]);
-
-			break;
-		}
-	}
 
 	if (!levelsData.empty()) {
 		for (int i = 0; i < 4; i++) {
@@ -132,9 +108,9 @@ void RouletteLayer::spin(RoulettePopup* popup) {
 
 	auto rotate = CCRotateBy::create(4.0f, 6.0f * 360.0f + deltaAngle);
 	auto ease = SmoothExponentialOut::create(rotate);
-	auto callback1 = CCCallFunc::create(this, callfunc_selector(RouletteLayer::afterSpinOnLayer));
-	auto callback2 = CCCallFunc::create(popup, callfunc_selector(RoulettePopup::afterSpinOnPopup));
-	auto seq = CCSequence::create(ease, callback1, callback2, nullptr);
+
+	auto callback = CallFuncExt::create([this]() { AfterSpinEvent().send(); });
+	auto seq = CCSequence::create(ease, callback, nullptr);
 	m_rouletteWheel->runAction(seq);
 }
 

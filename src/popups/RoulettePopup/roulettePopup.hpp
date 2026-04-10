@@ -1,12 +1,16 @@
 #pragma once
 
 #include "../../Globals.hpp"
+#include "../../events/afterSpinEvent.hpp"
 
 class RoulettePopup : public geode::Popup {
 public:
 	static RoulettePopup* create();
 
 protected:
+    ListenerHandle m_spinListener;
+    ListenerHandle m_afterSpinListener;
+
 	CCLabelBMFont* m_spinsCount;
     CCMenuItemSpriteExtra* m_spinBtn;
     CCMenuItemSpriteExtra* m_playBtn;
@@ -27,6 +31,7 @@ protected:
     void afterSpinOnPopup();
     void resetRoulette();
     void onListsBtn();
+    void levelChoice();
     void keyDown(enumKeyCodes key, double d) override;
 
     friend class RouletteLayer;
