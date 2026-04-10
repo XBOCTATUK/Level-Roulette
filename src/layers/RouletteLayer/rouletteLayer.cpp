@@ -120,7 +120,7 @@ void RouletteLayer::spin(RoulettePopup* popup) {
 			
 			m_quadrants[i]->setColor(diffColors[level.diff]);
 			m_levelNames[i]->setString(level.name.c_str());
-			if (level.name.size() > 12) m_levelNames[i]->setScale(0.35f); // scs, amet, aver, aq, evr, 
+			if (level.name.size() > 12) m_levelNames[i]->setScale(0.35f);
 
 			auto diffSpr = CCSprite::createWithSpriteFrameName(spriteNames[level.diff].c_str());
 			diffSpr->setRotation(315.0f - 90.0f * i);

@@ -5,16 +5,21 @@
 #include "../../events/levelCountEvent.hpp"
 #include "../../events/updateListEditorEvent.hpp"
 #include "../../events/populateListEditorEvent.hpp"
+#include "../../events/listSelectionEvent.hpp"
 
 class RouletteListCell : public CCNode {
 public:
     static RouletteListCell* create(std::string listName, int levelsCount, GJGameLevel* level, bool isLevelAddition);
 protected:
-	ListenerHandle m_listener;
-    bool m_isLevelAddition = false;
+	ListenerHandle m_levelCountListener;
+	ListenerHandle m_selectionListener;
+	bool m_isLevelAddition = false;
 	CCLabelBMFont* m_listNameLabel;
 	CCLabelBMFont* m_levelsCountLabel;
+	CCMenu* m_menu;
 	CCMenuItemSpriteExtra* m_btn;
+	CCMenuItemSpriteExtra* m_levelsBtn;
+	CCMenuItemSpriteExtra* m_deleteBtn;
 
     bool init(std::string listName, int levelsCount, GJGameLevel* level, bool isLevelAddition);
     void onAdd(GJGameLevel* level, std::string listName);

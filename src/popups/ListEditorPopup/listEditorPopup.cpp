@@ -11,7 +11,7 @@ ListEditorPopup* ListEditorPopup::create(GJGameLevel* level, bool isLevelAdditio
 }
 
 bool ListEditorPopup::init(GJGameLevel* level, bool isLevelAddition) {
-    if (!Popup::init(280.0f, 280.0f)) return false;
+    if (!Popup::init(320.0f, 280.0f)) return false;
 	m_isLevelAddition = isLevelAddition;
 
     this->setID("list-editor-menu"_spr);
@@ -20,7 +20,7 @@ bool ListEditorPopup::init(GJGameLevel* level, bool isLevelAddition) {
 	m_level = level;
 
 	auto scrollBG = CCLayerColor::create({0, 0, 0, 96});
-	scrollBG->setContentSize({240.0f, 220.0f});
+	scrollBG->setContentSize({280.0f, 220.0f});
 	scrollBG->setAnchorPoint({0.5f, 0.5f});
 	scrollBG->setPosition(m_size / 2.0f + ccp(0, -10));
 	scrollBG->ignoreAnchorPointForPosition(false);

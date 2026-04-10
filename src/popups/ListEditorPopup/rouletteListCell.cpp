@@ -13,7 +13,7 @@ RouletteListCell* RouletteListCell::create(std::string listName, int levelsCount
 bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* level, bool isLevelAddition) {
 	if (!CCNode::init()) return false;
 
-	this->setContentSize({220.0f, 40.0f});
+	this->setContentSize({260.0f, 40.0f});
 	m_isLevelAddition = isLevelAddition;
 
 	auto bg = NineSlice::create("square02b_001.png");
@@ -43,11 +43,11 @@ bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* 
 	m_levelsCountLabel->setPosition({10.0f, 12.0f});
 	addChild(m_levelsCountLabel);
 
-	auto menu = CCMenu::create();
-	menu->setContentSize(m_obContentSize);
-	menu->setPosition(m_obContentSize / 2.0f);
-	menu->ignoreAnchorPointForPosition(false);
-	addChild(menu);
+	m_menu = CCMenu::create();
+	m_menu->setContentSize(m_obContentSize);
+	m_menu->setPosition(m_obContentSize / 2.0f);
+	m_menu->ignoreAnchorPointForPosition(false);
+	addChild(m_menu);
 
 	bool isListSelected = Mod::get()->getSavedValue<std::string>("current-list-name", "") == listName;
 	auto btnSpr = ButtonSprite::create(
@@ -62,30 +62,30 @@ bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* 
 	m_btn->setScale(0.5f);
 	m_btn->m_baseScale = m_btn->getScale();
 	m_btn->m_scaleMultiplier = 1.15f;
-	m_btn->setPosition({menu->getContentWidth() - m_btn->getScaledContentWidth() / 2.0f - 10.0f, 20.0f});
-	menu->addChild(m_btn);
+	m_btn->setPosition({m_menu->getContentWidth() - m_btn->getScaledContentWidth() / 2.0f - 10.0f, 20.0f});
+	m_menu->addChild(m_btn);
 
 	auto levelsBtnSpr = CCSprite::createWithSpriteFrameName("GJ_viewListsBtn_001.png");
-	auto levelsBtn = CCMenuItemExt::createSpriteExtra(levelsBtnSpr, [this, listName](auto) { LevelListPopup::create(listName)->show(); });
-	levelsBtn->setScale(0.45f);
-	levelsBtn->m_baseScale = levelsBtn->getScale();
-	levelsBtn->m_scaleMultiplier = 1.15f;
-	levelsBtn->setPosition({m_btn->getPositionX() - m_btn->getScaledContentWidth() / 2.0f - levelsBtn->getScaledContentWidth() / 2.0f - 5.0f, 20.0f});
-	menu->addChild(levelsBtn);
+	m_levelsBtn = CCMenuItemExt::createSpriteExtra(levelsBtnSpr, [this, listName](auto) { LevelListPopup::create(listName)->show(); });
+	m_levelsBtn->setScale(0.45f);
+	m_levelsBtn->m_baseScale = m_levelsBtn->getScale();
+	m_levelsBtn->m_scaleMultiplier = 1.15f;
+	m_levelsBtn->setPosition({m_btn->getPositionX() - m_btn->getScaledContentWidth() / 2.0f - m_levelsBtn->getScaledContentWidth() / 2.0f - 5.0f, 20.0f});
+	m_menu->addChild(m_levelsBtn);
 
 	auto deleteBtnSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
-    auto deleteBtn = CCMenuItemExt::createSpriteExtra(deleteBtnSpr, [this, listName](auto) {
+    m_deleteBtn = CCMenuItemExt::createSpriteExtra(deleteBtnSpr, [this, listName](auto) {
         deleteList(listName);
     });
-    deleteBtn->setScale(0.5f);
-    deleteBtn->m_baseScale = deleteBtn->getScale();
-	deleteBtn->m_scaleMultiplier = 1.15f;
-	deleteBtn->setPosition({levelsBtn->getPositionX() - levelsBtn->getScaledContentWidth() / 2.0f - deleteBtn->getScaledContentWidth() / 2.0f - 5.0f, 20.0f});
-    menu->addChild(deleteBtn);
+    m_deleteBtn->setScale(0.5f);
+    m_deleteBtn->m_baseScale = m_deleteBtn->getScale();
+	m_deleteBtn->m_scaleMultiplier = 1.15f;
+	m_deleteBtn->setPosition({m_levelsBtn->getPositionX() - m_levelsBtn->getScaledContentWidth() / 2.0f - m_deleteBtn->getScaledContentWidth() / 2.0f - 5.0f, 20.0f});
+    m_menu->addChild(m_deleteBtn);
 
-    menu->updateLayout();
+    m_menu->updateLayout();
 
-	m_listener = LevelCountEvent(listName).listen(
+	m_levelCountListener = LevelCountEvent(listName).listen(
 		[this](int count) {
 			log::info("Event | {}", count);
 			auto str =
@@ -97,6 +97,25 @@ bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* 
 				m_levelsCountLabel->setString(str.c_str());
 
 			return ListenerResult::Propagate;
+		}
+	);
+
+	m_selectionListener = ListSelectionEvent().listen(
+		[this, listName]() {
+			bool isListSelected = Mod::get()->getSavedValue<std::string>("current-list-name", "") == listName;
+			auto btnSpr = static_cast<ButtonSprite*>(m_btn->getNormalImage());
+			if (isListSelected) {
+				btnSpr->setString("Selected");
+				btnSpr->updateBGImage("GJ_button_03.png");
+			}
+			else {
+				btnSpr->setString("Select");
+				btnSpr->updateBGImage("GJ_button_01.png");
+			}
+
+			m_btn->setPositionX(m_menu->getContentWidth() - m_btn->getScaledContentWidth() / 2.0f - 10.0f);
+			m_levelsBtn->setPositionX(m_btn->getPositionX() - m_btn->getScaledContentWidth() / 2.0f - m_levelsBtn->getScaledContentWidth() / 2.0f - 5.0f);
+			m_deleteBtn->setPositionX(m_levelsBtn->getPositionX() - m_levelsBtn->getScaledContentWidth() / 2.0f - m_deleteBtn->getScaledContentWidth() / 2.0f - 5.0f);
 		}
 	);
 
@@ -126,9 +145,7 @@ void RouletteListCell::onSelect(std::string listName) {
 	Globals::getLevelData().clear();
 	Mod::get()->setSavedValue<std::string>("current-list-name", listName);
 
-	auto btnSpr = static_cast<ButtonSprite*>(m_btn->getNormalImage());
-	btnSpr->setString("Selected");
-	btnSpr->updateBGImage("GJ_button_03.png");
+	ListSelectionEvent().send();
 }
 
 void RouletteListCell::deleteList(std::string listName) {
