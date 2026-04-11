@@ -10,9 +10,8 @@ class $modify(MyLevelSearchLayer, LevelSearchLayer) {
 
 		auto filterMenu = this->getChildByID("other-filter-menu");
 
-		auto rouletteSpr = CircleButtonSprite::createWithSpriteFrameName("GJ_dislikesIcon_001.png");
-		rouletteSpr->getTopNode()->setPosition({ 23.375f, 29.5f });
-		rouletteSpr->getTopNode()->setScale(1.0f);
+		auto rouletteSpr = CircleButtonSprite::createWithSprite("logo.png"_spr);
+		rouletteSpr->getTopNode()->setScale(0.25f);
 		rouletteSpr->setScale(0.8f);
 		auto rouletteBtn = CCMenuItemSpriteExtra::create(rouletteSpr, this, menu_selector(MyLevelSearchLayer::onBtn));
 		rouletteBtn->setID("level-roulette-button"_spr);
