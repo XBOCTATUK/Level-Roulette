@@ -86,13 +86,13 @@ bool RouletteLayer::init(float deltaAngle) {
 void RouletteLayer::spin(float deltaAngle) {
 	static std::mt19937 mt(std::random_device{}());
 	auto& selectedLevels = Globals::getSelectedLevelsMutable();
-	auto& levelsData = Globals::getLevelData();
+	auto& levelDataList = Globals::getLevelData();
 
-	if (!levelsData.empty()) {
+	if (!levelDataList.empty()) {
 		for (int i = 0; i < 4; i++) {
 			auto diffColors = Globals::getDifficultyColors();
 			auto spriteNames = Globals::getSpriteNames();
-			LevelData level = levelsData[std::to_string(selectedLevels[i])];
+			LevelData level = levelDataList[std::to_string(selectedLevels[i])];
 			
 			m_quadrants[i]->setColor(diffColors[level.diff]);
 			m_levelNames[i]->setString(level.name.c_str());

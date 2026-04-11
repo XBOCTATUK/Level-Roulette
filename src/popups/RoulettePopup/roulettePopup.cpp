@@ -80,7 +80,7 @@ bool RoulettePopup::readLevelData() {
 		return false;
 	}
 
-	std::unordered_map<std::string, LevelData> levelsData;
+	std::unordered_map<std::string, LevelData> levelDataList;
 
 	auto data = Globals::getListsData();
 	if (data.size() != 0) {
@@ -95,11 +95,11 @@ bool RoulettePopup::readLevelData() {
 			levelData.diff = value["diff"].asString().unwrap();
 			levelData.levelID = levelID;
 
-			levelsData[key] = levelData;
+			levelDataList[key] = levelData;
 			Globals::getLevelsMutable().push_back(levelID);
 		}
 
-		Globals::setLevelData(levelsData);
+		Globals::setLevelData(levelDataList);
 		return true;
 	}
 	else return false;

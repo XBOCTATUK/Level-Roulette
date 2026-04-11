@@ -1,8 +1,8 @@
 #include "./rouletteListCell.hpp"
 
-RouletteListCell* RouletteListCell::create(std::string listName, int levelsCount, GJGameLevel* level, bool isLevelAddition) {
+RouletteListCell* RouletteListCell::create(std::string listName, int levelCount, GJGameLevel* level, bool isLevelAddition) {
 	auto ret = new RouletteListCell();
-	if (ret && ret->init(listName, levelsCount, level, isLevelAddition)) {
+	if (ret && ret->init(listName, levelCount, level, isLevelAddition)) {
 		ret->autorelease();
 		return ret;
 	}
@@ -10,12 +10,12 @@ RouletteListCell* RouletteListCell::create(std::string listName, int levelsCount
 	return nullptr;
 }
 
-bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* level, bool isLevelAddition) {
+bool RouletteListCell::init(std::string listName, int levelCount, GJGameLevel* level, bool isLevelAddition) {
 	if (!CCNode::init()) return false;
 
 	this->setContentSize({260.0f, 40.0f});
 	m_isLevelAddition = isLevelAddition;
-	m_levelCount = levelsCount;
+	m_levelCount = levelCount;
 
 	auto bg = NineSlice::create("square02b_001.png");
 	bg->setColor({0, 0, 0});
@@ -34,15 +34,15 @@ bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* 
 	m_listNameLabel->setPosition({10.0f, 28.0f});
 	addChild(m_listNameLabel);
 
-	m_levelsCountLabel = CCLabelBMFont::create(
-		levelsCount == 0 ? "Empty list" :
-		levelsCount == 1 ? "1 level" :
-		fmt::format("{} levels", levelsCount).c_str(), "goldFont.fnt"
+	m_levelCountLabel = CCLabelBMFont::create(
+		levelCount == 0 ? "Empty list" :
+		levelCount == 1 ? "1 level" :
+		fmt::format("{} levels", levelCount).c_str(), "goldFont.fnt"
 	);
-	m_levelsCountLabel->setScale(0.4f);
-	m_levelsCountLabel->setAnchorPoint({0.0f, 0.5f});
-	m_levelsCountLabel->setPosition({10.0f, 12.0f});
-	addChild(m_levelsCountLabel);
+	m_levelCountLabel->setScale(0.4f);
+	m_levelCountLabel->setAnchorPoint({0.0f, 0.5f});
+	m_levelCountLabel->setPosition({10.0f, 12.0f});
+	addChild(m_levelCountLabel);
 
 	m_menu = CCMenu::create();
 	m_menu->setContentSize(m_obContentSize);
@@ -93,8 +93,8 @@ bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* 
 				count == 1 ? "1 level" :
 				fmt::format("{} levels", count);
 
-			if (m_levelsCountLabel)
-				m_levelsCountLabel->setString(str.c_str());
+			if (m_levelCountLabel)
+				m_levelCountLabel->setString(str.c_str());
 			m_levelCount = count;
 
 			return ListenerResult::Propagate;

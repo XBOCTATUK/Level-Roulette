@@ -15,7 +15,7 @@ class $modify(MyLevelSearchLayer, LevelSearchLayer) {
 		rouletteSpr->getTopNode()->setScale(1.0f);
 		rouletteSpr->setScale(0.8f);
 		auto rouletteBtn = CCMenuItemSpriteExtra::create(rouletteSpr, this, menu_selector(MyLevelSearchLayer::onBtn));
-		rouletteBtn->setID("levels-roulette-button"_spr);
+		rouletteBtn->setID("level-roulette-button"_spr);
 		filterMenu->addChild(rouletteBtn);
 		filterMenu->updateLayout();
 

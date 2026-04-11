@@ -9,20 +9,20 @@
 
 class RouletteListCell : public CCNode {
 public:
-    static RouletteListCell* create(std::string listName, int levelsCount, GJGameLevel* level, bool isLevelAddition);
+    static RouletteListCell* create(std::string listName, int levelCount, GJGameLevel* level, bool isLevelAddition);
 protected:
 	ListenerHandle m_levelCountListener;
 	ListenerHandle m_selectionListener;
 	bool m_isLevelAddition = false;
 	int m_levelCount;
 	CCLabelBMFont* m_listNameLabel;
-	CCLabelBMFont* m_levelsCountLabel;
+	CCLabelBMFont* m_levelCountLabel;
 	CCMenu* m_menu;
 	CCMenuItemSpriteExtra* m_btn;
 	CCMenuItemSpriteExtra* m_levelsBtn;
 	CCMenuItemSpriteExtra* m_deleteBtn;
 
-    bool init(std::string listName, int levelsCount, GJGameLevel* level, bool isLevelAddition);
+    bool init(std::string listName, int levelCount, GJGameLevel* level, bool isLevelAddition);
     void onAdd(GJGameLevel* level, std::string listName);
     void onSelect(std::string listName);
 	void deleteList(std::string listName);

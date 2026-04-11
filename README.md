@@ -1,4 +1,4 @@
-# Levels Roulette
+# Level Roulette
 
 This mod <b>adds</b> a <b>REAL wheel of fortune</b> to <i>GD</i>.<br>
 <i>Want to know what level you'll get?</i>
