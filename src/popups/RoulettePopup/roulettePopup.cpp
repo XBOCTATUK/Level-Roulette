@@ -184,7 +184,6 @@ void RoulettePopup::afterSpinOnPopup() {
 
 	m_playBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_playBtn2_001.png", 0.8f, [this](auto) {
 		auto searchObj = GJSearchObject::create(SearchType::Search, std::to_string(Globals::getCurrentLevel().levelID));
-		log::info("suuus");
 
 		auto lbl = LevelBrowserLayer::scene(searchObj);
 		auto transitionFade = CCTransitionFade::create(0.5, lbl);

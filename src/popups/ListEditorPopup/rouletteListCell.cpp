@@ -15,6 +15,7 @@ bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* 
 
 	this->setContentSize({260.0f, 40.0f});
 	m_isLevelAddition = isLevelAddition;
+	m_levelCount = levelsCount;
 
 	auto bg = NineSlice::create("square02b_001.png");
 	bg->setColor({0, 0, 0});
@@ -87,7 +88,6 @@ bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* 
 
 	m_levelCountListener = LevelCountEvent(listName).listen(
 		[this](int count) {
-			log::info("Event | {}", count);
 			auto str =
 				count == 0 ? "Empty list" :
 				count == 1 ? "1 level" :
@@ -95,6 +95,7 @@ bool RouletteListCell::init(std::string listName, int levelsCount, GJGameLevel* 
 
 			if (m_levelsCountLabel)
 				m_levelsCountLabel->setString(str.c_str());
+			m_levelCount = count;
 
 			return ListenerResult::Propagate;
 		}
@@ -136,16 +137,31 @@ void RouletteListCell::onAdd(GJGameLevel* level, std::string listName) {
 
 	Globals::setListsData(data);
 	
-	log::info("{}", data[listName].size());
 	LevelCountEvent(listName).send(data[listName].size());
 }
 
 void RouletteListCell::onSelect(std::string listName) {
-	Globals::setCurrentListName(listName);
-	Globals::getLevelData().clear();
-	Mod::get()->setSavedValue<std::string>("current-list-name", listName);
+	bool isListSelected = Mod::get()->getSavedValue<std::string>("current-list-name", "") == listName;
+	if (isListSelected) return;
 
-	ListSelectionEvent().send();
+	if (m_levelCount < 4) {
+		FLAlertLayer::create(
+			"Levels too few",
+			"You cannot select a list that has less than 4 levels.",
+			"Ok"
+		)->show();
+	}
+	else if (m_levelCount < 103) {
+		createQuickPopup("Few levels", "You don't have enough levels to complete the roulette. Select a list?", "No", "Yes", [this, listName](auto, bool yesBtn) {
+			if (yesBtn) {
+				Globals::setCurrentListName(listName);
+				Globals::getLevelData().clear();
+				Mod::get()->setSavedValue<std::string>("current-list-name", listName);
+	
+				ListSelectionEvent().send();
+			}
+		});
+	}
 }
 
 void RouletteListCell::deleteList(std::string listName) {

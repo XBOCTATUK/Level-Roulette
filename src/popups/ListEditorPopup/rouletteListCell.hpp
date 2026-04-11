@@ -14,6 +14,7 @@ protected:
 	ListenerHandle m_levelCountListener;
 	ListenerHandle m_selectionListener;
 	bool m_isLevelAddition = false;
+	int m_levelCount;
 	CCLabelBMFont* m_listNameLabel;
 	CCLabelBMFont* m_levelsCountLabel;
 	CCMenu* m_menu;

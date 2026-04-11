@@ -10,7 +10,7 @@
 	"name": "Levels Roulette",
 	"version": "v1.0.0",
 	"developer": "xboctatuk",
-	"description": "This mod adds a roulette button to the level search layer and allows you to try your unluck.",
+	"description": "This mod adds a roulette button to the level search layer.",
 	"settings": {
 		"skips-count": {
 			"name": "Skips count",
@@ -24,7 +24,7 @@
 		},
 		"list-editor-enabled": {
 			"name": "List editor enabled",
-			"description": "Enables the ability to create level lists",
+			"description": "Allows you to create lists of levels. A plus button appears in the level cell, opening a pop-up window for creating lists and adding levels to them.",
 			"type": "bool",
 			"default": false
 		}

@@ -148,6 +148,7 @@ private:
     static inline std::string g_currentListName = Mod::get()->getSavedValue<std::string>("current-list-name", "");
 
     static inline const std::unordered_map<std::string, ccColor3B> g_difficultyColors = {
+        {"N/A", {160, 160, 160}},
         {"Auto", {234, 173, 86}},
         {"Easy", {0, 212, 255}},
         {"Normal", {0, 255, 37}},
@@ -161,6 +162,7 @@ private:
         {"ExtremeDemon", {176, 0, 0}}
     };
     static inline const std::unordered_map<std::string, std::string> g_spriteNames = {
+        {"N/A", "diffIcon_00_btn_001.png"},
         {"Auto", "diffIcon_auto_btn_001.png"},
         {"Easy", "diffIcon_01_btn_001.png"},
         {"Normal", "diffIcon_02_btn_001.png"},
@@ -174,6 +176,7 @@ private:
         {"ExtremeDemon", "diffIcon_10_btn_001.png"}
     };
     static inline const std::unordered_map<std::string, std::string> g_spriteNames1 = {
+        {"N/A", "difficulty_00_btn_001.png"},
         {"Auto", "difficulty_auto_btn_001.png"},
         {"Easy", "difficulty_01_btn_001.png"},
         {"Normal", "difficulty_02_btn_001.png"},
