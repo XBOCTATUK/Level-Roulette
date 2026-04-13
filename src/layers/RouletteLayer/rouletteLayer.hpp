@@ -2,7 +2,6 @@
 
 #include "../../Globals.hpp"
 #include "../../popups/RoulettePopup/roulettePopup.hpp"
-#include "../../events/startSpinEvent.hpp"
 #include "../../events/afterSpinEvent.hpp"
 
 class RouletteLayer : public geode::Popup {

@@ -33,12 +33,13 @@ protected:
 		else if (level->m_stars == 10 && level->m_demonDifficulty == 0) return "HardDemon";
 		else if (level->m_stars == 10 && level->m_demonDifficulty == 5) return "InsaneDemon";
 		else if (level->m_stars == 10 && level->m_demonDifficulty == 6) return "ExtremeDemon";
-        else if (level->m_stars == 1 || level->getAverageDifficulty() == 0) return "Auto";
-		else if (level->m_stars == 2 || level->getAverageDifficulty() == 1) return "Easy";
-		else if (level->m_stars == 3 || level->getAverageDifficulty() == 2) return "Normal";
-		else if (level->m_stars == 4 || level->m_stars == 5 || level->getAverageDifficulty() == 3) return "Hard";
-		else if (level->m_stars == 6 || level->m_stars == 7 || level->getAverageDifficulty() == 4) return "Harder";
-		else if (level->m_stars == 8 || level->m_stars == 9 || level->getAverageDifficulty() == 5) return "Insane";
+		else if (level->getAverageDifficulty() == 0) return "N/A";
+        else if (level->getAverageDifficulty() == -1) return "Auto";
+		else if (level->getAverageDifficulty() == 1) return "Easy";
+		else if (level->getAverageDifficulty() == 2) return "Normal";
+		else if (level->getAverageDifficulty() == 3) return "Hard";
+		else if (level->getAverageDifficulty() == 4) return "Harder";
+		else if (level->getAverageDifficulty() == 5) return "Insane";
         else return "N/A";
     }
 };

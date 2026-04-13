@@ -10,8 +10,8 @@ class $modify(MyLevelSearchLayer, LevelSearchLayer) {
 
 		auto filterMenu = this->getChildByID("other-filter-menu");
 
-		auto rouletteSpr = CircleButtonSprite::createWithSprite("logo.png"_spr);
-		rouletteSpr->getTopNode()->setScale(0.25f);
+		auto rouletteSpr = CircleButtonSprite::createWithSprite("logo-spr.png"_spr);
+		rouletteSpr->getTopNode()->setScale(rouletteSpr->getScaledContentWidth() / rouletteSpr->getTopNode()->getContentWidth() * 0.7f);
 		rouletteSpr->setScale(0.8f);
 		auto rouletteBtn = CCMenuItemSpriteExtra::create(rouletteSpr, this, menu_selector(MyLevelSearchLayer::onBtn));
 		rouletteBtn->setID("level-roulette-button"_spr);
@@ -61,7 +61,6 @@ class $modify(MyLevelCell, LevelCell) {
 		if (selectToggler) btn->setPosition({ selectToggler->getPositionX() - selectToggler->getContentWidth() - 8.0f, selectToggler->getPositionY() });
 		else if (m_compactView && percentLabel) btn->setPosition({ percentLabel->getPositionX() - percentLabel->getScaledContentWidth() / 2.0f - btn->getContentWidth() / 2.0f - 8.0f - m_mainMenu->getContentWidth() / 2.0f, percentLabel->getPositionY() - m_mainMenu->getContentHeight() / 2.0f });
 		else if (m_compactView && compIcon) btn->setPosition({ compIcon->getPositionX() - compIcon->getScaledContentWidth() / 2.0f - btn->getContentWidth() / 2.0f - 8.0f - m_mainMenu->getContentWidth() / 2.0f, compIcon->getPositionY() - m_mainMenu->getContentHeight() / 2.0f });
-		else if (m_compactView) btn->setPosition({ viewBtn->getPositionX() - viewBtn->getContentWidth() / 2.0f - btn->getContentWidth() / 2.0f - 8.0f, viewBtn->getPositionY() });
-		else btn->setPosition({ -20.5f, -115.0f });
+		else btn->setPosition({ viewBtn->getPositionX() - viewBtn->getContentWidth() / 2.0f - btn->getContentWidth() / 2.0f - 8.0f, viewBtn->getPositionY() });
 	}
 };

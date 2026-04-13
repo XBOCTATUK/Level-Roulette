@@ -54,12 +54,6 @@ bool RoulettePopup::init() {
 	m_listsBtn->setPosition(m_buttonMenu->getContentSize());
 	m_buttonMenu->addChild(m_listsBtn);
 
-	m_spinListener = StartSpinEvent().listen(
-		[this](float deltaAngle) {
-			RouletteLayer::create(deltaAngle)->show();
-		}
-	);
-
 	m_afterSpinListener = AfterSpinEvent().listen(
 		[this]() {
 			afterSpinOnPopup();
@@ -140,7 +134,7 @@ void RoulettePopup::levelChoice() {
 		}
 	}
 
-	StartSpinEvent().send(deltaAngle);
+	RouletteLayer::create(deltaAngle)->show();
 }
 
 void RoulettePopup::afterSpinOnPopup() {

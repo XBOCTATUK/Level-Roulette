@@ -8,7 +8,6 @@ public:
 	static RoulettePopup* create();
 
 protected:
-    ListenerHandle m_spinListener;
     ListenerHandle m_afterSpinListener;
 
     std::vector<CCNode*> m_uiEls;
