@@ -54,6 +54,7 @@ bool LevelListPopup::init(std::string listName) {
 	m_updateListener = UpdateLevelListEvent().listen(
 		[this](RouletteLevelListCell* cell) {
 			auto content = m_scrollingLayer->m_contentLayer;
+			float offset = content->getPositionY();
 
 			if (!cell || !m_scrollingLayer)
 				return ListenerResult::Propagate;
@@ -61,10 +62,10 @@ bool LevelListPopup::init(std::string listName) {
 			cell->setVisible(false);
 			cell->setContentSize({0, 0});
 			content->updateLayout();
-			m_scrollingLayer->scrollToTop();
 			
 			cell->removeFromParentAndCleanup(true);
 			content->updateLayout();
+			m_scrollingLayer->setContentOffset({0.0f, offset}, false);
 
 			if (content->getChildrenCount() == 0)
 				m_emptyScrollLabel->setVisible(true);
@@ -77,12 +78,7 @@ bool LevelListPopup::init(std::string listName) {
 }
 
 void LevelListPopup::populateScroll(std::string listName) {
-	auto* contentLayer = m_scrollingLayer->m_contentLayer;
-	if (contentLayer->getChildrenCount() != 0) {
-		for (int i = 0; i < contentLayer->getChildren()->count(); i++) {
-			contentLayer->getChildByIndex(i)->removeFromParentAndCleanup(true);
-		}
-	}
+	auto* content = m_scrollingLayer->m_contentLayer;
 
     auto data = Globals::getListsData();
 	if (data.size() == 0 || data[listName].size() == 0) {
@@ -93,8 +89,8 @@ void LevelListPopup::populateScroll(std::string listName) {
 
 	for (auto& [key, value] : data[listName]) {
 		auto cell = RouletteLevelListCell::create(listName, value);
-		contentLayer->addChild(cell);
-		contentLayer->updateLayout();
+		content->addChild(cell);
+		content->updateLayout();
 	}
 	m_scrollingLayer->moveToTop();
 }

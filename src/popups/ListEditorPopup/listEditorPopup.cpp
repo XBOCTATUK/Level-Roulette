@@ -55,6 +55,7 @@ bool ListEditorPopup::init(GJGameLevel* level, bool isLevelAddition) {
 	m_updateListener = UpdateListEditorEvent().listen(
 		[this](RouletteListCell* cell) {
 			auto content = m_scrollingLayer->m_contentLayer;
+			float offset = content->getPositionY();
 
 			if (!cell || !m_scrollingLayer)
 				return ListenerResult::Propagate;
@@ -62,10 +63,10 @@ bool ListEditorPopup::init(GJGameLevel* level, bool isLevelAddition) {
 			cell->setVisible(false);
 			cell->setContentSize({0, 0});
 			content->updateLayout();
-			m_scrollingLayer->scrollToTop();
 			
 			cell->removeFromParentAndCleanup(true);
 			content->updateLayout();
+			m_scrollingLayer->setContentOffset({0.0f, offset}, false);
 
 			if (content->getChildrenCount() == 0)
 				m_emptyScrollLabel->setVisible(true);
@@ -85,12 +86,9 @@ bool ListEditorPopup::init(GJGameLevel* level, bool isLevelAddition) {
 }
 
 void ListEditorPopup::populateScroll() {
-	auto* contentLayer = m_scrollingLayer->m_contentLayer;
-	if (contentLayer->getChildrenCount() != 0) {
-		for (int i = 0; i < contentLayer->getChildren()->count(); i++) {
-			contentLayer->getChildByIndex(i)->removeFromParentAndCleanup(true);
-		}
-	}
+	auto* content = m_scrollingLayer->m_contentLayer;
+	if (content->getChildrenCount() != 0)
+		content->getChildren()->removeAllObjects();
 
     auto data = Globals::getListsData();
 	if (data.size() == 0) {
@@ -101,8 +99,8 @@ void ListEditorPopup::populateScroll() {
 	
 	for (auto& [key, value] : data) {
 		auto cell = RouletteListCell::create(key, value.size(), m_level, m_isLevelAddition);
-		contentLayer->addChild(cell);
-		contentLayer->updateLayout();
+		content->addChild(cell);
+		content->updateLayout();
 	}
 	m_scrollingLayer->moveToTop();
 }
