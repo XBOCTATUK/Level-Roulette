@@ -8,7 +8,7 @@ class ListEditorPopup;
 
 class NewListPopup : public geode::Popup {
 public:
-    static NewListPopup* create(CCArray* levelList = {}, std::string listName = "");
+    static NewListPopup* create(CCArray* levelList = nullptr, std::string listName = "");
 private:
     TextInput* m_textInput;
 

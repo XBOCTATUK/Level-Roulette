@@ -55,7 +55,7 @@ void NewListPopup::createList(CCArray* levelList) {
     }
 
     data[listName] = matjson::Value::object();
-    if (levelList->count() > 0) {
+    if (levelList) {
         for (int i = 0; i < levelList->count(); i++) {
             auto level = typeinfo_cast<GJGameLevel*>(levelList->objectAtIndex(i));
             if (!level) continue;
