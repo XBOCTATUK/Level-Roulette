@@ -74,7 +74,7 @@ void RouletteLevelListCell::deleteLevel(std::string listName, std::string levelI
             if (data.size() == 0 || data[listName].size() == 0) return;
             data[listName].erase(levelID);
 
-            Globals::setListsData(data);
+            Globals::saveListsData(data);
 
             UpdateLevelListEvent().send(this);
             LevelCountEvent(listName).send(data[listName].size());

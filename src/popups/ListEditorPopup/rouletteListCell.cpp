@@ -13,7 +13,7 @@ RouletteListCell* RouletteListCell::create(std::string listName, int levelCount,
 bool RouletteListCell::init(std::string listName, int levelCount, GJGameLevel* level, bool isLevelAddition) {
 	if (!CCNode::init()) return false;
 
-	this->setContentSize({260.0f, 40.0f});
+	this->setContentSize({300.0f, 40.0f});
 	m_isLevelAddition = isLevelAddition;
 	m_levelCount = levelCount;
 
@@ -25,9 +25,10 @@ bool RouletteListCell::init(std::string listName, int levelCount, GJGameLevel* l
 	addChild(bg);
 
 	m_listNameLabel = CCLabelBMFont::create(listName.c_str(), "bigFont.fnt");
+	m_listNameLabel->setScale(0.5f);
 	m_listNameLabel->setScale(
-		m_listNameLabel->getContentWidth() > 200.0f ?
-		0.5f * 200.0f / m_listNameLabel->getContentWidth() :
+		m_listNameLabel->getScaledContentWidth() > 120.0f ?
+		120.0f / m_listNameLabel->getContentWidth() :
 		0.5f
 	);
 	m_listNameLabel->setAnchorPoint({0.0f, 0.5f});
@@ -45,8 +46,16 @@ bool RouletteListCell::init(std::string listName, int levelCount, GJGameLevel* l
 	addChild(m_levelCountLabel);
 
 	m_menu = CCMenu::create();
-	m_menu->setContentSize(m_obContentSize);
-	m_menu->setPosition(m_obContentSize / 2.0f);
+	m_menu->setLayout(
+		RowLayout::create()
+		->setGap(5.0f)
+		->setAxisReverse(true)
+		->setAutoScale(false)
+		->setAxisAlignment(AxisAlignment::End)
+	);
+	m_menu->setContentSize({ 180.0f, 25.0f });
+	m_menu->setAnchorPoint({ 1.0f, 0.5f });
+	m_menu->setPosition({m_obContentSize.width - 10.0f, m_obContentSize.height / 2.0f});
 	m_menu->ignoreAnchorPointForPosition(false);
 	addChild(m_menu);
 
@@ -84,6 +93,11 @@ bool RouletteListCell::init(std::string listName, int levelCount, GJGameLevel* l
 	m_deleteBtn->setPosition({m_levelsBtn->getPositionX() - m_levelsBtn->getScaledContentWidth() / 2.0f - m_deleteBtn->getScaledContentWidth() / 2.0f - 5.0f, 20.0f});
     m_menu->addChild(m_deleteBtn);
 
+	m_toggler = CCMenuItemExt::createTogglerWithStandardSprites(0.5f, [this, listName](CCMenuItemToggler* toggler) {
+		SelectListEvent().send(listName);
+	});
+	m_menu->addChild(m_toggler);
+
     m_menu->updateLayout();
 
 	m_levelCountListener = LevelCountEvent(listName).listen(
@@ -93,8 +107,9 @@ bool RouletteListCell::init(std::string listName, int levelCount, GJGameLevel* l
 				count == 1 ? "1 level" :
 				fmt::format("{} levels", count);
 
-			if (m_levelCountLabel)
+			if (m_levelCountLabel) {
 				m_levelCountLabel->setString(str.c_str());
+			}
 			m_levelCount = count;
 
 			return ListenerResult::Propagate;
@@ -117,6 +132,8 @@ bool RouletteListCell::init(std::string listName, int levelCount, GJGameLevel* l
 			m_btn->setPositionX(m_menu->getContentWidth() - m_btn->getScaledContentWidth() / 2.0f - 10.0f);
 			m_levelsBtn->setPositionX(m_btn->getPositionX() - m_btn->getScaledContentWidth() / 2.0f - m_levelsBtn->getScaledContentWidth() / 2.0f - 5.0f);
 			m_deleteBtn->setPositionX(m_levelsBtn->getPositionX() - m_levelsBtn->getScaledContentWidth() / 2.0f - m_deleteBtn->getScaledContentWidth() / 2.0f - 5.0f);
+
+			m_menu->updateLayout();
 		}
 	);
 
@@ -130,12 +147,12 @@ void RouletteListCell::onAdd(GJGameLevel* level, std::string listName) {
 	levelData["name"] = std::string(level->m_levelName);
 	levelData["levelID"] = level->m_levelID.value();
 	levelData["creator"] = std::string(level->m_creatorName);
-	levelData["diff"] = getDiff(level);
+	levelData["diff"] = Globals::getDiff(level);
 
 	auto idStr = std::to_string(level->m_levelID.value());
-	auto& levelList = data[listName][idStr] = levelData;
+	data[listName][idStr] = levelData;
 
-	Globals::setListsData(data);
+	Globals::saveListsData(data);
 	
 	LevelCountEvent(listName).send(data[listName].size());
 }
@@ -172,7 +189,7 @@ void RouletteListCell::deleteList(std::string listName) {
 			if (data.size() == 0) return;
 			data.erase(listName);
 
-			Globals::setListsData(data);
+			Globals::saveListsData(data);
 
 			UpdateListEditorEvent().send(this);
 		}

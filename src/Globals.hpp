@@ -61,6 +61,29 @@ public:
     static void setCurrentListName(std::string name) { g_currentListName = name; }
 
 
+    static std::string getDiff(GJGameLevel* level) {
+		log::info("{} {} {} {}",
+			static_cast<int>(level->m_difficulty),
+			level->getAverageDifficulty(),
+			level->m_stars,
+			level->m_demonDifficulty
+		);
+		if (level->m_stars == 10 && level->m_demonDifficulty == 3) return "EasyDemon";
+		else if (level->m_stars == 10 && level->m_demonDifficulty == 4) return "MediumDemon";
+		else if (level->m_stars == 10 && level->m_demonDifficulty == 0) return "HardDemon";
+		else if (level->m_stars == 10 && level->m_demonDifficulty == 5) return "InsaneDemon";
+		else if (level->m_stars == 10 && level->m_demonDifficulty == 6) return "ExtremeDemon";
+		else if (level->getAverageDifficulty() == 0) return "N/A";
+        else if (level->m_stars == 1) return "Auto";
+		else if (level->m_stars != 1 && level->getAverageDifficulty() == 1) return "Easy";
+		else if (level->getAverageDifficulty() == 2) return "Normal";
+		else if (level->getAverageDifficulty() == 3) return "Hard";
+		else if (level->getAverageDifficulty() == 4) return "Harder";
+		else if (level->getAverageDifficulty() == 5) return "Insane";
+        else return "N/A";
+    }
+
+
     static geode::Result<std::filesystem::path> getFilePath() {
         auto modFolder = geode::dirs::getModPersistentDir() / Mod::get()->getID();
         auto filePath = modFolder / "lists.json";
@@ -113,7 +136,7 @@ public:
         return data;
     }
 
-    static void setListsData(matjson::Value& data) {
+    static void saveListsData(matjson::Value& data) {
         auto filePath = getFilePath();
         if (filePath.isErr()) {
             FLAlertLayer::create(

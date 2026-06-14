@@ -114,7 +114,11 @@ void RoulettePopup::levelChoice() {
 	else {
 		levels.insert(levels.end(), usedLevels.begin(), usedLevels.end());
 		usedLevels.clear();
-		FLAlertLayer::create("Whoops!", "The levels are out! The list has been restored.", "Ok")->show();
+		FLAlertLayer::create(
+			"Whoops!",
+			"The levels are out! The list has been restored.",
+			"Ok"
+		)->show();
 		resetRoulette();
 
 		return;
@@ -214,10 +218,18 @@ void RoulettePopup::afterSpinOnPopup() {
 	auto skipSpr = ButtonSprite::create("Skip", "bigFont.fnt", "GJ_button_03.png");
 	m_skipBtn = CCMenuItemExt::createSpriteExtra(skipSpr, [this](auto) {
 		if (Globals::getRequirePercent() == 100) {
-			FLAlertLayer::create("Congrats", "You passed the roulette. =3", "Hurray!")->show();
+			FLAlertLayer::create(
+				"Congrats",
+				"You passed the roulette. =3",
+				"Hurray!"
+			)->show();
 		}
 		else if (Globals::getSkipsCount() == 0) {
-			FLAlertLayer::create("Nope", "You spent all your skips. =3", "Ok")->show();
+			FLAlertLayer::create(
+				"Nope",
+				"You spent all your skips. =3",
+				"Ok"
+			)->show();
 		}
 		else {
 			Globals::setSkipsCount(Globals::getSkipsCount() - 1);
@@ -236,10 +248,18 @@ void RoulettePopup::afterSpinOnPopup() {
 	auto nextSpr = ButtonSprite::create("Next", "bigFont.fnt", "GJ_button_01.png");
 	m_nextBtn = CCMenuItemExt::createSpriteExtra(nextSpr, [this](auto) {
 		if (Globals::getRequirePercent() == 100) {
-			FLAlertLayer::create("Congrats", "You passed the roulette. =3", "Hurray!")->show();
+			FLAlertLayer::create(
+				"Congrats",
+				"You passed the roulette. =3",
+				"Hurray!"
+			)->show();
 		}
 		else if (Globals::getCurrentPercent() < Globals::getRequirePercent()) {
-			FLAlertLayer::create("Nope", "You haven't reached the required percentage. =3", "Ok")->show();
+			FLAlertLayer::create(
+				"Nope",
+				"You haven't reached the required percentage. =3", 
+				"Ok"
+			)->show();
 		}
 		else {
 			Globals::setRequirePercent(Globals::getRequirePercent() + 1);

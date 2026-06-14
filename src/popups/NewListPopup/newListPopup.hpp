@@ -8,10 +8,10 @@ class ListEditorPopup;
 
 class NewListPopup : public geode::Popup {
 public:
-    static NewListPopup* create();
+    static NewListPopup* create(CCArray* levelList = {}, std::string listName = "");
 private:
     TextInput* m_textInput;
 
-    bool init();
-    void createList();
+    bool init(CCArray* levelList, std::string listName);
+    void createList(CCArray* levelList);
 };

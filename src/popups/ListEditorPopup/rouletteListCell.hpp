@@ -6,6 +6,7 @@
 #include "../../events/updateListEditorEvent.hpp"
 #include "../../events/populateListEditorEvent.hpp"
 #include "../../events/listSelectionEvent.hpp"
+#include "../../events/selectListEvent.hpp"
 
 class RouletteListCell : public CCNode {
 public:
@@ -21,31 +22,10 @@ protected:
 	CCMenuItemSpriteExtra* m_btn;
 	CCMenuItemSpriteExtra* m_levelsBtn;
 	CCMenuItemSpriteExtra* m_deleteBtn;
+	CCMenuItemToggler* m_toggler;
 
     bool init(std::string listName, int levelCount, GJGameLevel* level, bool isLevelAddition);
     void onAdd(GJGameLevel* level, std::string listName);
     void onSelect(std::string listName);
 	void deleteList(std::string listName);
-
-    std::string getDiff(GJGameLevel* level) {
-		log::info("{} {} {} {}",
-			static_cast<int>(level->m_difficulty),
-			level->getAverageDifficulty(),
-			level->m_stars,
-			level->m_demonDifficulty
-		);
-		if (level->m_stars == 10 && level->m_demonDifficulty == 3) return "EasyDemon";
-		else if (level->m_stars == 10 && level->m_demonDifficulty == 4) return "MediumDemon";
-		else if (level->m_stars == 10 && level->m_demonDifficulty == 0) return "HardDemon";
-		else if (level->m_stars == 10 && level->m_demonDifficulty == 5) return "InsaneDemon";
-		else if (level->m_stars == 10 && level->m_demonDifficulty == 6) return "ExtremeDemon";
-		else if (level->getAverageDifficulty() == 0) return "N/A";
-        else if (level->m_stars == 1) return "Auto";
-		else if (level->m_stars != 1 && level->getAverageDifficulty() == 1) return "Easy";
-		else if (level->getAverageDifficulty() == 2) return "Normal";
-		else if (level->getAverageDifficulty() == 3) return "Hard";
-		else if (level->getAverageDifficulty() == 4) return "Harder";
-		else if (level->getAverageDifficulty() == 5) return "Insane";
-        else return "N/A";
-    }
 };

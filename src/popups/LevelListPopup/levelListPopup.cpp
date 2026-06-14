@@ -56,8 +56,9 @@ bool LevelListPopup::init(std::string listName) {
 			auto content = m_scrollingLayer->m_contentLayer;
 			float offset = content->getPositionY();
 
-			if (!cell || !m_scrollingLayer)
+			if (!cell || !m_scrollingLayer) {
 				return ListenerResult::Propagate;
+			}
 
 			cell->setVisible(false);
 			cell->setContentSize({0, 0});
@@ -103,7 +104,7 @@ void LevelListPopup::clearList(std::string listName) {
 			if (data.size() == 0 || data[listName].size() == 0) return;
 			data[listName] = matjson::Value::object();
 
-			Globals::setListsData(data);
+			Globals::saveListsData(data);
 		}
 	});
 }
