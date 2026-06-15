@@ -57,6 +57,7 @@ bool RoulettePopup::init() {
 	m_afterSpinListener = AfterSpinEvent().listen(
 		[this]() {
 			afterSpinOnPopup();
+			return ListenerResult::Propagate;
 		}
 	);
 
@@ -74,22 +75,24 @@ bool RoulettePopup::readLevelData() {
 		return false;
 	}
 
-	std::unordered_map<std::string, LevelData> levelDataList;
+	std::unordered_map<int, LevelData> levelDataList;
 
 	auto data = Globals::getListsData();
 	if (data.size() != 0) {
 		auto currentList = data[Globals::getCurrentListName()];
 		for (auto [key, value] : currentList) {
+			auto levelIDParse = numFromString<int>(key);
+			if (levelIDParse.isErr()) continue;
+			
+			int levelID = levelIDParse.unwrap();
+			
 			LevelData levelData;
-			int levelID = numFromString<int>(key, 10).unwrapOrDefault();
-			if (levelID == 0) continue;
-
 			levelData.name = value["name"].asString().unwrap();
 			levelData.creator = value["creator"].asString().unwrap();
 			levelData.diff = value["diff"].asString().unwrap();
 			levelData.levelID = levelID;
 
-			levelDataList[key] = levelData;
+			levelDataList[levelID] = levelData;
 			Globals::getLevelsMutable().push_back(levelID);
 		}
 
@@ -129,7 +132,7 @@ void RoulettePopup::levelChoice() {
 	int levelIndex = 0;
 	for (int i = 0; i < 4; i++) {
 		if (deltaAngle - (90.0f * i) < 90.0f) {
-			Globals::setCurrentLevel(levelsData[std::to_string(selectedLevels[i])]);
+			Globals::setCurrentLevel(levelsData.at(selectedLevels[i]));
 
 			levels.erase(std::find(levels.begin(), levels.end(), selectedLevels[i]));
 			usedLevels.push_back(selectedLevels[i]);
@@ -167,8 +170,7 @@ void RoulettePopup::afterSpinOnPopup() {
 	m_resetBtn->setZOrder(1);
 	m_uiEls.push_back(m_resetBtn);
 
-	auto altSpriteNames = Globals::getAltSpriteNames();
-	m_diffSpr = CCSprite::createWithSpriteFrameName(altSpriteNames[Globals::getCurrentLevel().diff].c_str());
+	m_diffSpr = CCSprite::createWithSpriteFrameName(Globals::getAltSpriteName(Globals::getCurrentLevel().diff).c_str());
 	m_diffSpr->setPosition({ 75.0f, 105.0f });
 	m_diffSpr->setZOrder(1);
 	m_uiEls.push_back(m_diffSpr);

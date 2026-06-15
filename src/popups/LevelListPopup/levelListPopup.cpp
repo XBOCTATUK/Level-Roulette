@@ -82,7 +82,7 @@ void LevelListPopup::populateScroll(std::string listName) {
 	auto* content = m_scrollingLayer->m_contentLayer;
 
     auto data = Globals::getListsData();
-	if (data.size() == 0 || data[listName].size() == 0) {
+	if (data.size() == 0 || !data.contains(listName) || data[listName].size() == 0) {
 		m_emptyScrollLabel->setVisible(true);
 		return;
 	}
@@ -101,7 +101,7 @@ void LevelListPopup::clearList(std::string listName) {
 		if (yesBtn) {
 			auto data = Globals::getListsData();
 
-			if (data.size() == 0 || data[listName].size() == 0) return;
+			if (data.size() == 0 || !data.contains(listName) || data[listName].size() == 0) return;
 			data[listName] = matjson::Value::object();
 
 			Globals::saveListsData(data);

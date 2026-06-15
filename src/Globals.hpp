@@ -39,10 +39,19 @@ public:
     static const std::vector<int>& getSelectedLevels() { return g_selectedLevels; }
     static std::vector<int>& getSelectedLevelsMutable() { return g_selectedLevels; }
 
-    static const std::unordered_map<std::string, std::string>& getSpriteNames() { return g_spriteNames; }
-    static const std::unordered_map<std::string, std::string>& getAltSpriteNames() { return g_spriteNames1; }
-    static const std::unordered_map<std::string, ccColor3B>& getDifficultyColors() { return g_difficultyColors; }
-    static std::unordered_map<std::string, LevelData>& getLevelData() { return g_levelData; }
+    static const std::string& getSpriteName(std::string diff) {
+        if (g_spriteNames.contains(diff)) return g_spriteNames.at(diff);
+        else return g_spriteNames.at("N/A");
+    }
+    static const std::string& getAltSpriteName(std::string diff) {
+        if (g_spriteNames1.contains(diff)) return g_spriteNames1.at(diff);
+        else return g_spriteNames1.at("N/A");
+    }
+    static const ccColor3B& getDifficultyColor(std::string diff) {
+        if (g_difficultyColors.contains(diff)) return g_difficultyColors.at(diff);
+        else return g_difficultyColors.at("N/A");
+    }
+    static std::unordered_map<int, LevelData>& getLevelData() { return g_levelData; }
 
     static LevelData& getCurrentLevel() { return g_currentLvl; }
 
@@ -53,7 +62,7 @@ public:
     static std::string& getCurrentListName() { return g_currentListName; }
 
     static void setCurrentLevel(LevelData& level) { g_currentLvl = level; }
-    static void setLevelData(std::unordered_map<std::string, LevelData>& levelData) { g_levelData = levelData; }
+    static void setLevelData(std::unordered_map<int, LevelData>& levelData) { g_levelData = levelData; }
     static void setSpinsCount(int count) { g_spinsCount = count; }
     static void setSkipsCount(int count) { g_skipsCount = count; }
     static void setRequirePercent(int percent) { g_requirePercent = percent; }
@@ -62,12 +71,6 @@ public:
 
 
     static std::string getDiff(GJGameLevel* level) {
-		log::info("{} {} {} {}",
-			static_cast<int>(level->m_difficulty),
-			level->getAverageDifficulty(),
-			level->m_stars,
-			level->m_demonDifficulty
-		);
 		if (level->m_stars == 10 && level->m_demonDifficulty == 3) return "EasyDemon";
 		else if (level->m_stars == 10 && level->m_demonDifficulty == 4) return "MediumDemon";
 		else if (level->m_stars == 10 && level->m_demonDifficulty == 0) return "HardDemon";
@@ -167,7 +170,7 @@ private:
     static inline int g_skipsCount = Mod::get()->getSettingValue<int>("skips-count");
     static inline int g_requirePercent = 1;
     static inline int g_currentPercent = 0;
-    static inline std::unordered_map<std::string, LevelData> g_levelData;
+    static inline std::unordered_map<int, LevelData> g_levelData;
     static inline std::string g_currentListName = Mod::get()->getSavedValue<std::string>("current-list-name", "");
 
     static inline const std::unordered_map<std::string, ccColor3B> g_difficultyColors = {

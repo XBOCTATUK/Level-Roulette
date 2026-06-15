@@ -9,7 +9,7 @@ class $modify(MyLevelListLayer, LevelListLayer) {
         if (!LevelListLayer::init(list)) return false;
         
         auto rightSideMenu = getChildByID("right-side-menu");
-        if (!rightSideMenu) return false;
+        if (!rightSideMenu) return true;
 
         auto rouletteSpr = CircleButtonSprite::createWithSprite("logo-spr.png"_spr, 1.0f, CircleBaseColor::Green, CircleBaseSize::Small);
 		auto rouletteBtn = CCMenuItemExt::createSpriteExtra(rouletteSpr, [this, list](auto) {

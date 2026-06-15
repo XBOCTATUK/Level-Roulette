@@ -21,9 +21,8 @@ bool RouletteLevelListCell::init(std::string listName, matjson::Value levelData)
 	bg->setContentSize(m_obContentSize);
 	addChild(bg);
 
-    auto spriteNames = Globals::getSpriteNames();
     auto diff = levelData["diff"].asString().unwrap();
-    auto diffIcon = CCSprite::createWithSpriteFrameName(spriteNames[diff].c_str());
+    auto diffIcon = CCSprite::createWithSpriteFrameName(Globals::getSpriteName(diff).c_str());
     diffIcon->setScale(0.75f);
     diffIcon->setPosition({this->getContentHeight() / 2.0f + 2.0f, this->getContentHeight() / 2.0f});
     addChild(diffIcon);   
@@ -71,7 +70,7 @@ void RouletteLevelListCell::deleteLevel(std::string listName, std::string levelI
 		if (yesBtn) {
 			auto data = Globals::getListsData();
 
-            if (data.size() == 0 || data[listName].size() == 0) return;
+            if (data.size() == 0 || !data.contains(listName) || data[listName].size() == 0) return;
             data[listName].erase(levelID);
 
             Globals::saveListsData(data);

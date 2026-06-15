@@ -33,6 +33,4 @@ protected:
     void onListsBtn();
     void levelChoice();
     void keyDown(enumKeyCodes key, double d) override;
-
-    friend class RouletteLayer;
 };

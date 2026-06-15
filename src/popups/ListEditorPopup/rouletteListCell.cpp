@@ -134,6 +134,7 @@ bool RouletteListCell::init(std::string listName, int levelCount, GJGameLevel* l
 			m_deleteBtn->setPositionX(m_levelsBtn->getPositionX() - m_levelsBtn->getScaledContentWidth() / 2.0f - m_deleteBtn->getScaledContentWidth() / 2.0f - 5.0f);
 
 			m_menu->updateLayout();
+			return ListenerResult::Propagate;
 		}
 	);
 

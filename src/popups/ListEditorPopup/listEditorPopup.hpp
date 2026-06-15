@@ -22,5 +22,6 @@ protected:
     bool init(GJGameLevel* level, bool isLevelAddition);
     void populateScroll();
 
-    friend class NewListPopup;
+    bool isValidLevel(matjson::Value const& level);
+    bool isValidImport(matjson::Value const& data);
 };

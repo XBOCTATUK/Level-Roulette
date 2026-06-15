@@ -136,6 +136,15 @@ bool ListEditorPopup::init(GJGameLevel* level, bool isLevelAddition) {
 						return;
 					}
 					auto importedData = readImportedData.unwrap();
+					if (!isValidImport(importedData)) {
+						FLAlertLayer::create(
+							"Error",
+							"Incorrect file content, make sure you selected the correct file.",
+							"Ok"
+						)->show();
+						
+						return;
+					}
 
 					createQuickPopup("Import Lists", "How should duplicate list names be handled?", "Copy", "Replace",
 						[importedData](auto, bool replace) {
@@ -224,6 +233,8 @@ bool ListEditorPopup::init(GJGameLevel* level, bool isLevelAddition) {
 			if (!m_selectedLists.erase(listName)) {
 				m_selectedLists.insert(listName);
 			}
+
+			return ListenerResult::Propagate;
 		}
 	);
 
@@ -249,4 +260,35 @@ void ListEditorPopup::populateScroll() {
 		content->updateLayout();
 	}
 	m_scrollingLayer->moveToTop();
+}
+
+bool ListEditorPopup::isValidLevel(matjson::Value const& level) {
+	if (!level.isObject()) return false;
+
+    return
+        level.contains("name") && level["name"].isString() &&
+
+        level.contains("levelID") && level["levelID"].isNumber() &&
+
+        level.contains("creator") && level["creator"].isString() &&
+
+        level.contains("diff") && level["diff"].isString();
+}
+
+bool ListEditorPopup::isValidImport(matjson::Value const& data) {
+    if (!data.isObject())
+        return false;
+
+    for (auto const& [listName, levels] : data) {
+        if (!levels.isObject()) return false;
+
+        for (auto const& [levelID, levelData] : levels) {
+            auto parse = utils::numFromString<int>(levelID);
+			if (parse.isErr()) return false;
+
+            if (!isValidLevel(levelData)) return false;
+        }
+    }
+
+    return true;
 }

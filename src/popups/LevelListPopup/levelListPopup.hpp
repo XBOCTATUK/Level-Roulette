@@ -13,6 +13,4 @@ protected:
     bool init(std::string listName);
     void populateScroll(std::string listName);
     void clearList(std::string listName);
-
-    friend class RouletteLevelListCell;
 };

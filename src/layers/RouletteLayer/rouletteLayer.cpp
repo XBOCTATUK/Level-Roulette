@@ -77,6 +77,7 @@ bool RouletteLayer::init(float deltaAngle) {
 	m_afterSpinListener = AfterSpinEvent().listen(
 		[this]() {
 			afterSpinOnLayer();
+			return ListenerResult::Propagate;
 		}
 	);
 
@@ -90,15 +91,13 @@ void RouletteLayer::spin(float deltaAngle) {
 
 	if (!levelDataList.empty()) {
 		for (int i = 0; i < 4; i++) {
-			auto diffColors = Globals::getDifficultyColors();
-			auto spriteNames = Globals::getSpriteNames();
-			LevelData level = levelDataList[std::to_string(selectedLevels[i])];
+			LevelData level = levelDataList.at(selectedLevels[i]);
 			
-			m_quadrants[i]->setColor(diffColors[level.diff]);
+			m_quadrants[i]->setColor(Globals::getDifficultyColor(level.diff));
 			m_levelNames[i]->setString(level.name.c_str());
 			if (level.name.size() > 12) m_levelNames[i]->setScale(0.35f);
 
-			auto diffSpr = CCSprite::createWithSpriteFrameName(spriteNames[level.diff].c_str());
+			auto diffSpr = CCSprite::createWithSpriteFrameName(Globals::getSpriteName(level.diff).c_str());
 			diffSpr->setRotation(315.0f - 90.0f * i);
 			diffSpr->setPosition({ i > 1 ? -30.0f : 30.0f, i == 0 || i == 3 ? -30.0f : 30.0f });
 			m_rouletteWheel->addChild(diffSpr);

@@ -45,7 +45,7 @@ void NewListPopup::createList(CCArray* levelList) {
     }
 
     auto data = Globals::getListsData();
-    if (data[listName].size() != 0) {
+    if (data.contains(listName) && data[listName].size() != 0) {
         FLAlertLayer::create(
             "Warning",
             "This list already exists. Create a new one or edit an existing one.",

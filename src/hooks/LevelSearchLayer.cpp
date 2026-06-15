@@ -6,6 +6,7 @@ class $modify(MyLevelSearchLayer, LevelSearchLayer) {
 		if (!LevelSearchLayer::init(type)) return false;
 
 		auto filterMenu = this->getChildByID("other-filter-menu");
+		if (!filterMenu) return true;
 
 		auto rouletteSpr = CircleButtonSprite::createWithSprite("logo-spr.png"_spr);
 		rouletteSpr->getTopNode()->setScale(rouletteSpr->getScaledContentWidth() / rouletteSpr->getTopNode()->getContentWidth() * 0.7f);
