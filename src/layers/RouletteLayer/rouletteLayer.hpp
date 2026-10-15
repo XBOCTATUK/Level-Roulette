@@ -1,40 +1,33 @@
 #pragma once
 
-#include "../../Globals.hpp"
-#include "../../popups/RoulettePopup/roulettePopup.hpp"
-#include "../../events/afterSpinEvent.hpp"
+#include "../../UI/FortuneWheel/FortuneWheel.hpp"
+#include "../../UI/RepeatBG/RepeatBG.hpp"
 
-class RouletteLayer : public geode::Popup {
+class RouletteLayer : public cocos2d::CCLayer {
 public:
-	static RouletteLayer* create(float deltaAngle);
+    static RouletteLayer* create();
+    static cocos2d::CCScene* scene();
 
 protected:
-    ListenerHandle m_afterSpinListener;
-    
-	CCMenu* m_rouletteWheel;
-    std::vector<CCSprite*> m_quadrants;
-    std::vector<CCLabelBMFont*> m_levelNames;
+    TailyUI::RepeatBG* m_bg = nullptr;
+    cocos2d::CCNode* m_mainContent = nullptr;
+    cocos2d::CCNode* m_leftContent = nullptr;
+    cocos2d::CCNode* m_rightContent = nullptr;
 
-    bool init(float deltaAngle);
-    void spin(float deltaAngle);
-    void afterSpinOnLayer();
-    void keyDown(enumKeyCodes key, double d) override;
-};
+    TailyUI::FortuneWheel* m_fortuneWheel = nullptr;
+    geode::NineSlice* m_titleBG = nullptr;
+    geode::Label* m_levelName = nullptr;
+    geode::Label* m_creatorName = nullptr;
 
-class SmoothExponentialOut : public CCActionEase {
-public:
-    static SmoothExponentialOut* create(CCActionInterval* pAction) {
-        SmoothExponentialOut* ret = new SmoothExponentialOut();
-        if (ret && ret->initWithAction(pAction)) {
-            ret->autorelease();
-            return ret;
-        }
-        CC_SAFE_DELETE(ret);
-	    return nullptr;
-    }
+    cocos2d::CCMenu* m_mainMenu = nullptr;
+    CCMenuItemSpriteExtra* m_closeBtn = nullptr;
+    CCMenuItemSpriteExtra* m_spinBtn = nullptr;
+    CCMenuItemSpriteExtra* m_skipBtn = nullptr;
+    CCMenuItemSpriteExtra* m_listBtn = nullptr;
 
-    virtual void update(float time) override {
-        float easedTime = 1.0f - powf(2.5f, -8.0f * time);
-        m_pInner->update(easedTime);
-    }
+    cocos2d::CCNode* m_levelListNode = nullptr;
+    geode::NineSlice* m_levelListBG = nullptr;
+    geode::ScrollLayer* m_levelScroll = nullptr;
+
+    bool init();
 };

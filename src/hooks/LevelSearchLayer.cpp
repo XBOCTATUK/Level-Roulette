@@ -1,25 +1,31 @@
-#include "../popups/RoulettePopup/roulettePopup.hpp"
 #include <Geode/modify/LevelSearchLayer.hpp>
+#include "../Layers/RouletteLayer/RouletteLayer.hpp"
 
-class $modify(MyLevelSearchLayer, LevelSearchLayer) {
-	bool init(int type) {
-		if (!LevelSearchLayer::init(type)) return false;
+using namespace geode::prelude;
 
-		auto filterMenu = this->getChildByID("other-filter-menu");
-		if (!filterMenu) return true;
+class $modify(LevelSearchLayer) {
+    bool init(int type) {
+        if (!LevelSearchLayer::init(type)) return false;
+        
+        auto rightFilterMenu = getChildByID("other-filter-menu");
+        if (!rightFilterMenu) return false;
 
-		auto rouletteSpr = CircleButtonSprite::createWithSprite("logo-spr.png"_spr);
-		rouletteSpr->getTopNode()->setScale(rouletteSpr->getScaledContentWidth() / rouletteSpr->getTopNode()->getContentWidth() * 0.7f);
-		rouletteSpr->setScale(0.8f);
-		auto rouletteBtn = CCMenuItemSpriteExtra::create(rouletteSpr, this, menu_selector(MyLevelSearchLayer::onBtn));
-		rouletteBtn->setID("level-roulette-button"_spr);
-		filterMenu->addChild(rouletteBtn);
-		filterMenu->updateLayout();
+        auto spr = CCSprite::create("logo-spr.png"_spr);
+        auto btnSpr = CircleButtonSprite::create(
+            spr, CircleBaseColor::Green, CircleBaseSize::Small
+        );
 
-		return true;
-	}
+        auto btn = CCMenuItemExt::createSpriteExtra(
+            btnSpr, [this](auto) {
+                CCDirector::get()->pushScene(
+                    CCTransitionFade::create(0.5f, RouletteLayer::scene())
+                );
+            }
+        );
 
-	void onBtn(CCObject* sender) {
-		RoulettePopup::create()->show();
-	}
+        rightFilterMenu->addChild(btn);
+        rightFilterMenu->updateLayout();
+
+        return true;
+    }
 };
